@@ -1,0 +1,10 @@
+# dependencies & build output
+node_modules/
+dist/
+site/
+*.tsbuildinfo
+
+# misc
+.DS_Store
+*.local
+*.zip

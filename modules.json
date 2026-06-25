@@ -1,0 +1,17 @@
+{
+  "site": {
+    "title": "Interactive Systems Learning",
+    "tagline": "Hands-on explainers for how real infrastructure works.",
+    "accent": "#85c20a"
+  },
+  "modules": [
+    {
+      "slug": "mig-vs-vgpu",
+      "dir": "modules/mig-vs-vgpu",
+      "title": "MIG vs vGPU — Internals",
+      "description": "How NVIDIA partitions a datacenter GPU. Build MIG slices, vGPUs and MIG-backed vGPUs, run workloads, and watch spatial vs temporal scheduling, fault isolation and time-slicing live. Includes a ~3-minute explainer film.",
+      "tags": ["NVIDIA", "GPU", "MIG", "vGPU", "virtualization"],
+      "accent": "#85c20a"
+    }
+  ]
+}
