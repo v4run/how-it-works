@@ -91,6 +91,7 @@ function landingPage({ site, modules }) {
   .kicker::before { content: ''; width: 28px; height: 1px; background: var(--accent); opacity: 0.7; }
   h1 { font-size: 52px; font-weight: 700; letter-spacing: -0.02em; margin: 20px 0 12px; line-height: 1.05; }
   .tagline { font-family: 'IBM Plex Mono', monospace; font-size: 17px; color: rgba(214,226,210,0.62); }
+  .disclaimer { margin-top: 18px; display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.5; color: #f2b134; border: 1px solid rgba(242,177,52,0.4); background: rgba(242,177,52,0.08); border-radius: 8px; padding: 9px 14px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
   .card {
     display: flex; flex-direction: column; text-decoration: none; color: inherit;
@@ -115,6 +116,7 @@ function landingPage({ site, modules }) {
       <div class="kicker">Interactive learning</div>
       <h1>${esc(site.title)}</h1>
       <div class="tagline">${esc(site.tagline || '')}</div>
+      <div class="disclaimer">⚠ Work in progress — these are educational models built for intuition, not operational accuracy. Some details may be simplified or incorrect.</div>
     </header>
     <main class="grid">
 ${cards}

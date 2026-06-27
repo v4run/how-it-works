@@ -47,7 +47,26 @@ function TopBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         <TabButton on={tab === 'learn'} label="Learn" sub="explainer film" onClick={() => setTab('learn')} />
       </div>
 
-      <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.12em' }}>
+      <span
+        title="Educational model built for intuition, not operational accuracy. Some details may be simplified or wrong."
+        style={{
+          marginLeft: 'auto',
+          fontFamily: MONO,
+          fontSize: 11,
+          color: C.amber,
+          letterSpacing: '0.06em',
+          border: `1px solid rgba(${hexToRgb(C.amber)},0.45)`,
+          background: `rgba(${hexToRgb(C.amber)},0.1)`,
+          borderRadius: 6,
+          padding: '4px 9px',
+          whiteSpace: 'nowrap',
+          cursor: 'help',
+        }}
+      >
+        ⚠ work in progress · may contain mistakes
+      </span>
+
+      <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.12em' }}>
         {tab === 'lab' ? 'build · run · observe' : 'space ▸ play · ← → seek'}
       </div>
     </div>
