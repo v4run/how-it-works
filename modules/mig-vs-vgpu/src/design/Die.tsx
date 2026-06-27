@@ -1,11 +1,14 @@
 // The shared GPU-die visual — ported from the prototype.
-// 7 compute-slice columns × a 7-glyph SM field (schematic only — the real
-// A100 has 108 SMs, ~14 per slice), an L2 band, and 8 memory slices.
+// 7 compute-slice columns × 14 SMs each = 98 SMs (one rectangle = one SM).
+// That's the A100's MIG-addressable SM count: 14 SMs per compute slice, 7
+// slices. The full A100 has 108 SMs; the remaining 10 aren't exposed to MIG.
+// Plus an L2 band and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
 
-export const COLS = 7;
-export const ROWS = 7;
+export const COLS = 7; // compute slices (max MIG instances)
+export const ROWS = 14; // SMs per compute slice → 7 × 14 = 98 SMs drawn
+export const TOTAL_SMS = 108; // SMs on the A100 die (98 in MIG slices + 10 reserved)
 export const MEM = 8;
 
 export interface DieGroup {
@@ -76,7 +79,7 @@ export function Die({
 
   const fieldH = h - 196;
   const colGap = 8;
-  const cellGap = 7;
+  const cellGap = 4;
   const pad = 22;
   const innerW = w - pad * 2;
   const colW = (innerW - colGap * (COLS - 1)) / COLS;
@@ -108,8 +111,8 @@ export function Die({
           <span />
         )}
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.12em', color: accent, opacity: 0.8 }}>
-            {COLS} compute slices · 108 SMs
+          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 14 SMs per compute slice × 7 slices = 98; the A100 die has 108 SMs (10 reserved, not MIG-addressable).">
+            {COLS} × {ROWS} SMs = {COLS * ROWS} of {TOTAL_SMS}
           </span>
         ) : null}
       </div>
@@ -128,9 +131,10 @@ export function Die({
                 return (
                   <div
                     key={ri}
+                    title={`SM ${ci * ROWS + ri + 1} · compute slice ${ci + 1}`}
                     style={{
                       flex: 1,
-                      borderRadius: 4,
+                      borderRadius: 3,
                       background: cellBg,
                       border: `1px solid ${cellBorder}`,
                       opacity: cin,
