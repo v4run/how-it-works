@@ -1,5 +1,6 @@
 // The shared GPU-die visual — ported from the prototype.
-// 7 compute slices (GPC/SM columns) × 7 SM rows, an L2 band, and 8 memory slices.
+// 7 compute-slice columns × a 7-glyph SM field (schematic only — the real
+// A100 has 108 SMs, ~14 per slice), an L2 band, and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
 
@@ -108,7 +109,7 @@ export function Die({
         )}
         {!hideHeader ? (
           <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.12em', color: accent, opacity: 0.8 }}>
-            {COLS}× GPC · {COLS * ROWS} SM
+            {COLS} compute slices · 108 SMs
           </span>
         ) : null}
       </div>
