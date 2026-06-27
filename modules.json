@@ -12,6 +12,14 @@
       "description": "How NVIDIA partitions a datacenter GPU. Build MIG slices, vGPUs and MIG-backed vGPUs, run workloads, and watch spatial vs temporal scheduling, fault isolation and time-slicing live. Includes a ~3-minute explainer film.",
       "tags": ["NVIDIA", "GPU", "MIG", "vGPU", "virtualization"],
       "accent": "#85c20a"
+    },
+    {
+      "slug": "nico",
+      "dir": "modules/nico",
+      "title": "NVIDIA Infra Controller (NICo)",
+      "description": "Zero-touch lifecycle automation for bare metal. Add servers and watch NICo discover, image and provision them through its lifecycle state machine; assign tenants on a shared fabric and see DPU-enforced isolation deny cross-tenant traffic. Includes an explainer film.",
+      "tags": ["NVIDIA", "bare metal", "provisioning", "DPU", "BlueField", "multitenancy"],
+      "accent": "#76B900"
     }
   ]
 }
