@@ -20,6 +20,14 @@
       "description": "Zero-touch lifecycle automation for bare metal. Add servers and watch NICo discover, image and provision them through its lifecycle state machine; assign tenants on a shared fabric and see DPU-enforced isolation deny cross-tenant traffic. Includes an explainer film.",
       "tags": ["NVIDIA", "bare metal", "provisioning", "DPU", "BlueField", "multitenancy"],
       "accent": "#76B900"
+    },
+    {
+      "slug": "vxlan",
+      "dir": "modules/vxlan",
+      "title": "VXLAN — MAC-in-UDP overlays",
+      "description": "How a virtual Layer-2 network rides across a routed fabric. Build VNI segments and hosts on a spine-leaf topology, then send a frame and watch the leaf VTEP encapsulate it, route it over the underlay and decapsulate it — with VNI isolation, BGP-EVPN vs flood-and-learn, ARP suppression and a live header-stack inspector. Includes a diagrammatic explainer film.",
+      "tags": ["networking", "VXLAN", "VTEP", "VNI", "BGP EVPN", "overlay", "spine-leaf"],
+      "accent": "#6f93b8"
     }
   ]
 }
