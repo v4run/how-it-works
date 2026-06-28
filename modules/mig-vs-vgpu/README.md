@@ -24,13 +24,16 @@ from the prototype.
 
 ## What you can do in the Lab
 
-Model is an **H100 SXM5 80GB**: 7 GPC slices (SM columns) + 8 memory slices.
+Model is an **H100 SXM5 80GB**: 7 GPC slices, 132 SMs, 8 × 10 GB memory slices
+(HBM3) — values confirmed against `nvidia-smi mig -lgip`.
 
 ### MIG · spatial
 - Add GPU Instances from real profiles (`1g.10gb` … `7g.80gb`). Placement is
   validated against NVIDIA's 19 valid MIG layouts (so e.g. a memory-heavy
   `3g.40gb` only packs when it sits on the right), alongside the 7-GPC-slice and
-  80 GB framebuffer budgets — you can fragment yourself out of a slot.
+  80 GB framebuffer budgets — you can fragment yourself out of a slot. Each
+  instance shows its real (non-uniform) SM count: `1g.10gb`=16, `3g.40gb`=60,
+  `7g.80gb`=132.
 - Assign a workload (idle / inference / render / training) per instance.
 - **Bind a VM** onto an instance (SR-IOV VF) to create a **MIG-backed vGPU**.
 - **Inject an XID fault** — it halts only that instance; neighbours keep running.
@@ -39,9 +42,15 @@ Model is an **H100 SXM5 80GB**: 7 GPC slices (SM columns) + 8 memory slices.
 ### vGPU · temporal
 - Create VMs from C-series profiles (`H100-8C` … `H100-80C`); each carves a static
   framebuffer (memory isolation) and binds a Virtual Function.
-- Pick a scheduler policy — **best-effort / equal-share / fixed-share** — and a
-  time quantum. The whole SM array is handed to one VM at a time; the wheel shows
-  the rotation, slice sizes follow the policy weights.
+- Pick a scheduler policy — and a time quantum. The whole SM array is handed to one
+  VM at a time; the wheel shows the rotation (these are NVIDIA's three real vGPU
+  schedulers — none uses per-VM weights):
+  - **best-effort** — idle VMs are skipped; busy VMs soak up the spare cycles.
+  - **equal-share** — split equally among the *running* VMs (1/N); add or remove a VM
+    and every slice grows/shrinks.
+  - **fixed-share** — each VM gets a fixed slice = *framebuffer / GPU memory* (1/max
+    for its type; a 40C gets ½, a 20C ¼), regardless of how many run. Any leftover
+    capacity sits idle (grey wedge) — consistent per-VM, but can waste the GPU.
 - **Hang a context** — the hung VM never yields, stalling every tenant. Framebuffers
   stay isolated, but compute has no fault containment. This is the trade-off,
   shown live.

@@ -27,9 +27,11 @@ scripts/
 
 ## Modules
 
-| Module                               | What it teaches                                                                                                    |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| [`mig-vs-vgpu`](modules/mig-vs-vgpu) | NVIDIA GPU partitioning — MIG (spatial), vGPU (time-sliced) and MIG-backed vGPU. Interactive lab + explainer film. |
+| Module                               | What it teaches                                                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| [`mig-vs-vgpu`](modules/mig-vs-vgpu) | NVIDIA GPU partitioning on the **H100 80GB** — MIG (spatial), vGPU (time-sliced) and MIG-backed vGPU. Interactive lab + film.   |
+| [`nico`](modules/nico)               | NVIDIA Infra Controller (NICo) — zero-touch bare-metal provisioning, DPU-enforced isolation, multitenant fabric. Lab + film.   |
+| [`vxlan`](modules/vxlan)             | VXLAN overlays — VTEPs, VNIs, spine-leaf fabric, BGP-EVPN vs flood-and-learn, ARP suppression, a live packet walk. Lab + film.  |
 
 ## Local development
 
