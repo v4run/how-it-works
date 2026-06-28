@@ -38,19 +38,23 @@ export const WORKLOADS: Record<WorkloadKind, { label: string; demand: number; hi
 
 export interface MigProfile {
   id: string;
-  g: number;
-  gb: number;
+  g: number; // GPC slices
+  gb: number; // framebuffer (nominal)
+  sm: number; // SMs in the instance (real, non-uniform — from nvidia-smi mig -lgip)
 }
-// H100 80GB GPU-instance profiles (nvidia-smi mig -lgip). Same GPC-slice (g)
-// structure as the A100 — only the memory doubles (10 GB per memory slice).
+// H100 SXM5 80GB GPU-instance profiles, with real SM counts confirmed on
+// hardware (nvidia-smi mig -lgip). Note the SMs are NOT a clean g × 16: the
+// die's 132 SMs don't divide evenly into 7, so 1g.20gb / 3g.40gb / 7g.80gb get
+// bonus SMs over what their slice count alone would imply.
 export const MIG_PROFILES: MigProfile[] = [
-  { id: '1g.10gb', g: 1, gb: 10 },
-  { id: '1g.20gb', g: 1, gb: 20 }, // 1 GPC slice, 2 memory slices
-  { id: '2g.20gb', g: 2, gb: 20 },
-  { id: '3g.40gb', g: 3, gb: 40 },
-  { id: '4g.40gb', g: 4, gb: 40 },
-  { id: '7g.80gb', g: 7, gb: 80 },
+  { id: '1g.10gb', g: 1, gb: 10, sm: 16 },
+  { id: '1g.20gb', g: 1, gb: 20, sm: 26 }, // 1 GPC slice, 2 memory slices
+  { id: '2g.20gb', g: 2, gb: 20, sm: 32 },
+  { id: '3g.40gb', g: 3, gb: 40, sm: 60 },
+  { id: '4g.40gb', g: 4, gb: 40, sm: 64 },
+  { id: '7g.80gb', g: 7, gb: 80, sm: 132 },
 ];
+export const smOf = (profileId: string): number => MIG_PROFILES.find((p) => p.id === profileId)?.sm ?? 0;
 
 export interface VgpuProfile {
   id: string;

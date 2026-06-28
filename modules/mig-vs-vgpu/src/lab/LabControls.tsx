@@ -8,6 +8,7 @@ import {
   LabState,
   MigInstance,
   MIG_PROFILES,
+  smOf,
   VGPU_PROFILES,
   WORKLOADS,
   WorkloadKind,
@@ -241,7 +242,7 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
           {MIG_PROFILES.map((p) => {
             const res = canPlaceMig(state, p);
             return (
-              <Button key={p.id} small accent={C.mig} disabled={!res.ok} title={res.ok ? `Add ${p.id}` : res.reason} onClick={() => dispatch({ type: 'addMig', profileId: p.id })}>
+              <Button key={p.id} small accent={C.mig} disabled={!res.ok} title={res.ok ? `Add ${p.id} — ${p.g} GPC slice${p.g === 1 ? '' : 's'}, ${p.sm} SMs, ${p.gb} GB` : res.reason} onClick={() => dispatch({ type: 'addMig', profileId: p.id })}>
                 + {p.id}
               </Button>
             );
@@ -278,7 +279,7 @@ function InstanceCard({ inst, idx, dispatch, snap }: { inst: MigInstance; idx: n
         <span style={{ width: 12, height: 12, borderRadius: 4, background: down ? C.red : inst.color }} />
         <span style={{ fontFamily: DISP, fontSize: 16, fontWeight: 600, color: C.ink }}>GI-{idx}</span>
         <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
-          {inst.profileId} · cols {inst.cols[0]}–{inst.cols[inst.cols.length - 1]}
+          {inst.profileId} · {smOf(inst.profileId)} SMs · cols {inst.cols[0]}–{inst.cols[inst.cols.length - 1]}
         </span>
         <span style={{ marginLeft: 'auto' }}>
           <button onClick={() => dispatch({ type: 'removeMig', id: inst.id })} style={xStyle} title="Remove">
@@ -311,7 +312,7 @@ function SliceCard({ inst, idx, dispatch, snap }: { inst: MigInstance; idx: numb
         <span style={{ width: 12, height: 12, borderRadius: 4, background: down ? C.red : inst.color }} />
         <span style={{ fontFamily: DISP, fontSize: 16, fontWeight: 600, color: C.ink }}>GI-{idx}</span>
         <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>
-          {inst.profileId} · {inst.vgpus.length === 1 ? '1 vGPU' : `${inst.vgpus.length} vGPUs · time-sliced`}
+          {inst.profileId} · {smOf(inst.profileId)} SMs · {inst.vgpus.length === 1 ? '1 vGPU' : `${inst.vgpus.length} vGPUs · time-sliced`}
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           <Toggle on={inst.faulted} accent={C.red} title="XID hardware fault — halts this whole slice" onClick={() => dispatch({ type: 'toggleFault', id: inst.id })}>

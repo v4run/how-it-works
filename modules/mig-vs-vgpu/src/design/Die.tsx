@@ -1,9 +1,10 @@
 // The shared GPU-die visual — ported from the prototype.
 // 7 GPC-slice columns × 16 SMs each = 112 SMs (one rectangle = one SM).
-// Confirmed on real H100 SXM5 hardware (nvidia-smi mig -lgip): 1g.10gb = 16 SMs,
-// 7g.80gb = 132 SMs. So a single full 7g instance spans all 132 SMs, but cutting
-// the GPU into 7 equal slices only reaches 7 × 16 = 112 — the other 20 SMs can't
-// be split evenly across 7 slices, so they go idle in a max-density partition.
+// The grid is a uniform schematic, but the real per-profile SM counts (from
+// nvidia-smi mig -lgip on H100 SXM5) are NOT uniform: 1g.10gb=16, 2g.20gb=32,
+// 4g.40gb=64 scale ×16, while 1g.20gb=26, 3g.40gb=60 and 7g.80gb=132 get bonus
+// SMs because 132 doesn't divide evenly into 7. So a full 7g.80gb spans all 132
+// SMs; a max-density 7-slice split reaches only 7 × 16 = 112.
 // Plus an L2 band and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
