@@ -9,6 +9,7 @@ export interface WheelSlice {
   weight: number;
   active: boolean;
   hung: boolean;
+  idle?: boolean; // reserved-but-unused slot (fixed-share)
 }
 
 export function SchedulerWheel({
@@ -61,9 +62,10 @@ export function SchedulerWheel({
               <path
                 key={s.id + s.a0}
                 d={`M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large},1 ${x1},${y1} Z`}
-                fill={`rgba(${hexToRgb(col)},${s.active ? 0.85 : 0.16})`}
+                fill={`rgba(${hexToRgb(col)},${s.active ? (s.idle ? 0.4 : 0.85) : s.idle ? 0.06 : 0.16})`}
                 stroke={col}
                 strokeWidth={s.active ? 2.5 : 1}
+                strokeDasharray={s.idle ? '4 3' : undefined}
               />
             );
           })
@@ -80,7 +82,7 @@ export function SchedulerWheel({
         <circle cx={cx} cy={cy} r={size * 0.16} fill={C.bg} stroke="rgba(255,255,255,0.14)" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-        {activeSlice ? (
+        {activeSlice && !activeSlice.idle ? (
           <>
             <div style={{ fontFamily: DISP, fontSize: 22, fontWeight: 700, color: stalled ? C.red : activeSlice.color }}>
               {activeSlice.name}
@@ -88,6 +90,11 @@ export function SchedulerWheel({
             <div style={{ fontFamily: MONO, fontSize: 11, color: C.faint, letterSpacing: '0.1em' }}>
               {stalled ? 'STALLED' : 'on GPU'}
             </div>
+          </>
+        ) : activeSlice && activeSlice.idle ? (
+          <>
+            <div style={{ fontFamily: DISP, fontSize: 20, fontWeight: 700, color: C.faint }}>idle</div>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint, letterSpacing: '0.1em' }}>RESERVED · UNUSED</div>
           </>
         ) : (
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.1em' }}>idle</div>

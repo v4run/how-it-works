@@ -98,7 +98,6 @@ export interface VM {
   color: string;
   workload: WorkloadDef;
   hung: boolean;
-  share: number;
 }
 
 export interface LabState {
@@ -131,6 +130,16 @@ export function usedMigMem(s: LabState): number {
 }
 export function usedVgpuMem(s: LabState): number {
   return s.vms.reduce((a, v) => a + v.fb, 0);
+}
+
+// Fixed-share scheduler: every vGPU gets an equal slice of 1/maxVgpus, where
+// maxVgpus is how many of this vGPU type the GPU supports (framebuffer-limited),
+// regardless of how many are actually running. Returns that slot count, so the
+// unused slots can be drawn as reserved-but-idle.
+export function fixedShareSlots(vms: VM[]): number {
+  if (vms.length === 0) return 0;
+  const maxFb = Math.max(...vms.map((v) => v.fb));
+  return Math.max(vms.length, Math.floor(TOTAL_MEM_GB / maxFb));
 }
 export function totalSliceVgpus(s: LabState): number {
   return s.instances.reduce((a, i) => a + i.vgpus.length, 0);
@@ -286,7 +295,6 @@ export type Action =
   | { type: 'removeVgpu'; id: string }
   | { type: 'setVmWorkload'; id: string; kind: WorkloadKind }
   | { type: 'toggleHang'; id: string }
-  | { type: 'setVmShare'; id: string; share: number }
   | { type: 'toggleRunning' }
   | { type: 'reset' }
   | { type: 'loadPreset'; preset: LabState };
@@ -399,7 +407,6 @@ export function reducer(s: LabState, a: Action): LabState {
         color: VM_COLORS[idx % VM_COLORS.length],
         workload: { kind: 'idle', demand: 0 },
         hung: false,
-        share: 1,
       };
       return { ...s, seq: s.seq + 1, vms: [...s.vms, vm] };
     }
@@ -412,8 +419,6 @@ export function reducer(s: LabState, a: Action): LabState {
       };
     case 'toggleHang':
       return { ...s, vms: s.vms.map((v) => (v.id === a.id ? { ...v, hung: !v.hung } : v)) };
-    case 'setVmShare':
-      return { ...s, vms: s.vms.map((v) => (v.id === a.id ? { ...v, share: a.share } : v)) };
 
     case 'toggleRunning':
       return { ...s, running: !s.running };

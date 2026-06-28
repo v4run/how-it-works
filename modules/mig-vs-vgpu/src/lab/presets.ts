@@ -151,18 +151,17 @@ export const PRESETS: Preset[] = [
       ]),
   },
   {
-    name: 'Fixed-share QoS',
-    hint: 'Weighted shares give each VM a guaranteed slice of GPU time.',
+    name: 'Fixed-share · idle capacity',
+    hint: 'Fixed share guarantees 1/max per VM — a half-full GPU leaves slots idle. Switch to equal-share to reclaim them.',
     accent: C.vgpu,
     build: () =>
+      // H100-20C maxes at 4 vGPUs (80/20). With only 2 running, each is pinned
+      // to 1/4 and the other two slots sit idle (grey on the wheel).
       build([
         { type: 'setMode', mode: 'vgpu' },
         { type: 'setScheduler', scheduler: 'fixed-share' },
-        ...Array.from({ length: 3 }, () => ({ type: 'addVgpu', profileId: 'H100-10C' }) as Action),
-        { type: 'setVmShare', id: 'vm-0', share: 4 },
-        { type: 'setVmShare', id: 'vm-1', share: 2 },
-        { type: 'setVmShare', id: 'vm-2', share: 1 },
-        ...Array.from({ length: 3 }, (_, i) => ({ type: 'setVmWorkload', id: `vm-${i}`, kind: 'training' }) as Action),
+        ...Array.from({ length: 2 }, () => ({ type: 'addVgpu', profileId: 'H100-20C' }) as Action),
+        ...Array.from({ length: 2 }, (_, i) => ({ type: 'setVmWorkload', id: `vm-${i}`, kind: 'training' }) as Action),
         { type: 'toggleRunning' },
       ]),
   },

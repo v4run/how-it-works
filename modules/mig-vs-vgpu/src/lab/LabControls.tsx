@@ -397,8 +397,8 @@ function VgpuBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Dis
         </div>
         <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>
           {state.scheduler === 'best-effort' && 'Idle VMs are skipped — busy tenants split time. Highest throughput, least predictable.'}
-          {state.scheduler === 'equal-share' && 'Every VM gets an equal turn whether busy or idle. Predictable, can waste idle slots.'}
-          {state.scheduler === 'fixed-share' && 'Each VM gets a guaranteed share of GPU time (set weights below).'}
+          {state.scheduler === 'equal-share' && 'The GPU is split equally among the running VMs (1/N). Add or remove a VM and every share grows or shrinks.'}
+          {state.scheduler === 'fixed-share' && 'Each VM gets a fixed 1/max-vGPUs slice, no matter how many run — so a half-full GPU leaves slots idle (grey on the wheel). Consistent per-VM, but wastes capacity.'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>Quantum</span>
@@ -461,14 +461,6 @@ function VgpuBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Dis
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                     <WorkloadSelect value={vm.workload.kind} accent={vm.color} onChange={(k) => dispatch({ type: 'setVmWorkload', id: vm.id, kind: k })} />
-                    {state.scheduler === 'fixed-share' ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 12, color: C.dim }}>
-                        share
-                        <button style={stepStyle} onClick={() => dispatch({ type: 'setVmShare', id: vm.id, share: Math.max(1, vm.share - 1) })}>−</button>
-                        <span style={{ color: C.ink, minWidth: 14, textAlign: 'center' }}>{vm.share}</span>
-                        <button style={stepStyle} onClick={() => dispatch({ type: 'setVmShare', id: vm.id, share: Math.min(8, vm.share + 1) })}>+</button>
-                      </span>
-                    ) : null}
                     <Toggle on={vm.hung} accent={C.red} title="Simulate a hung/runaway context — stalls the shared scheduler" onClick={() => dispatch({ type: 'toggleHang', id: vm.id })}>
                       {vm.hung ? 'Hung context' : 'Hang context'}
                     </Toggle>

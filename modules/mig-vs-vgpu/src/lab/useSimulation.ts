@@ -10,7 +10,7 @@
 //                hung vGPU stalls only its slice-mates — never another slice.
 
 import React from 'react';
-import { LabState, TOTAL_COMPUTE } from './model';
+import { LabState, TOTAL_COMPUTE, fixedShareSlots } from './model';
 
 export interface UnitMetric {
   id: string;
@@ -53,13 +53,16 @@ function buildOrder(s: LabState): string[] {
     return s.vms.filter((v) => v.workload.demand > 0 || v.hung).map((v) => v.id);
   }
   if (s.scheduler === 'fixed-share') {
-    const order: string[] = [];
-    for (const v of s.vms) {
-      const slots = Math.max(1, Math.round(v.share));
-      for (let k = 0; k < slots; k++) order.push(v.id);
-    }
+    // Each vGPU gets a fixed 1/maxVgpus slice; the leftover slots stay idle
+    // (the GPU reserves them even though no VM is there). Idle slots get unique
+    // ids so the wheel can highlight the one currently on the GPU.
+    if (s.vms.length === 0) return [];
+    const order = s.vms.map((v) => v.id);
+    const slots = fixedShareSlots(s.vms);
+    for (let k = 0; order.length < slots; k++) order.push(`idle-${k}`);
     return order;
   }
+  // equal-share: the GPU is split equally among the running vGPUs.
   return s.vms.map((v) => v.id);
 }
 
@@ -94,7 +97,7 @@ export function useSimulation(state: LabState): SimSnapshot {
       )
       .join(',') +
     '|' +
-    state.vms.map((v) => `${v.id}:${v.workload.kind}:${v.hung}:${v.share}`).join(',');
+    state.vms.map((v) => `${v.id}:${v.workload.kind}:${v.hung}`).join(',');
 
   React.useEffect(() => {
     const a = acc.current;
@@ -194,8 +197,17 @@ export function useSimulation(state: LabState): SimSnapshot {
         for (const vm of s.vms) ensure(vm.id);
         if (order.length > 0) {
           activeId = order[a.slotPos % order.length];
-          const activeVm = s.vms.find((v) => v.id === activeId)!;
-          if (activeVm.hung) {
+          const activeVm = s.vms.find((v) => v.id === activeId);
+          if (!activeVm) {
+            // Idle slot (fixed-share, underpopulated): GPU reserved but unused —
+            // no VM runs, time still passes so each VM's share stays 1/maxVgpus.
+            a.quantumElapsed += dt;
+            quantumFrac = Math.min(1, a.quantumElapsed / quantumSec);
+            if (a.quantumElapsed >= quantumSec) {
+              a.slotPos = (a.slotPos + 1) % order.length;
+              a.quantumElapsed = 0;
+            }
+          } else if (activeVm.hung) {
             stalledByHang = true;
             a.activeTime[activeId] += dt;
             a.quantumElapsed += dt;
