@@ -205,9 +205,11 @@ function S2_Split({ lt }: { lt: number }) {
 function S3_MigSlice({ lt }: { lt: number }) {
   const dividers = clamp((lt - 2.5) / 2.0, 0, 1);
   const memAssign = clamp((lt - 9) / 3.5, 0, 1);
+  // Seven 1g.5gb slices each take one memory slice (7 of 8); the 8th has no
+  // compute slice left to pair with, so it's stranded — not reserved.
   const memGroups = lt > 9
     ? Array.from({ length: 8 }, (_, i) => {
-        if (i === 7) return 'reserved';
+        if (i === 7) return 'stranded';
         return i / 7 <= memAssign ? C.mig : null;
       })
     : null;
@@ -235,7 +237,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
         }}
       >
         <Chip accent={C.mig}>7 compute slices</Chip>
-        <Chip accent={C.mig}>8 memory slices · 1 reserved</Chip>
+        <Chip accent={C.mig}>8 memory slices · 1 stranded</Chip>
         <Chip accent={C.mig}>hard-wired in hardware</Chip>
       </div>
 
@@ -265,12 +267,9 @@ function S4_Profiles({ lt }: { lt: number }) {
   const groups = layout
     .filter((g) => lt > 5 + g.t)
     .map((g) => ({ cols: g.cols, label: g.label, color: C.mig, o: clamp((lt - 5 - g.t) / 0.5, 0, 1) }));
-  const memGroups = lt > 5
-    ? (() => {
-        const map = [C.mig, C.mig, C.mig, C.mig, C.mig, C.mig, C.mig, 'reserved'];
-        return map.map((c, i) => (i === 7 ? 'reserved' : lt > 5.4 + i * 0.2 ? c : null));
-      })()
-    : null;
+  // 3g.20gb (4 slices) + 2g.10gb (2) + 1g.5gb (1) + 1g.5gb (1) = all 8 memory
+  // slices, 7 compute slices — the full 40 GB is claimed, nothing stranded.
+  const memGroups = lt > 5 ? Array.from({ length: 8 }, (_, i) => (lt > 5.4 + i * 0.2 ? C.mig : null)) : null;
 
   const profiles = ['1g.5gb', '1g.10gb', '2g.10gb', '3g.20gb', '4g.20gb', '7g.40gb'];
   return (

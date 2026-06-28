@@ -291,25 +291,31 @@ export function Die({
         <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.34em', color: C.faint }}>L2 CACHE · CROSSBAR</span>
       </div>
 
-      {/* memory strip (HBM) */}
+      {/* memory strip — 8 MIG memory slices (5 GB each, HBM2e-backed) */}
       <div style={{ marginTop: 12, display: 'flex', gap: 6, height: 40 }}>
         {Array.from({ length: MEM }).map((_, mi) => {
           const tint = memGroups && memGroups !== 'mig' ? memGroups[mi] : null;
+          const stranded = tint === 'stranded';
+          const assigned = !!tint && !stranded;
           const mIn = clamp((reveal - 0.4) / 0.5, 0, 1);
-          const fill =
-            tint && tint !== 'reserved'
-              ? `rgba(${hexToRgb(tint)},0.85)`
-              : tint === 'reserved'
-                ? 'rgba(120,130,120,0.18)'
-                : `rgba(${hexToRgb(accent)},0.14)`;
+          const fill = assigned
+            ? `rgba(${hexToRgb(tint as string)},0.85)`
+            : stranded
+              ? 'rgba(120,130,120,0.18)'
+              : `rgba(${hexToRgb(accent)},0.14)`;
           return (
             <div
               key={mi}
+              title={
+                stranded
+                  ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 compute slices, so this 5 GB slice has no compute slice to pair with and is unusable.'
+                  : 'MIG memory slice — 5 GB, HBM2e-backed (not a physical FBP).'
+              }
               style={{
                 flex: 1,
                 borderRadius: 5,
                 background: fill,
-                border: `1px solid rgba(${hexToRgb(tint && tint !== 'reserved' ? tint : accent)},0.3)`,
+                border: `1px ${stranded ? 'dashed' : 'solid'} rgba(${hexToRgb(assigned ? (tint as string) : accent)},0.3)`,
                 opacity: mIn,
                 display: 'flex',
                 alignItems: 'center',
@@ -319,12 +325,12 @@ export function Die({
               <span
                 style={{
                   fontFamily: MONO,
-                  fontSize: 10,
-                  letterSpacing: '0.1em',
-                  color: tint && tint !== 'reserved' ? '#06100a' : C.faint,
+                  fontSize: stranded ? 9 : 10,
+                  letterSpacing: stranded ? '0.02em' : '0.1em',
+                  color: assigned ? '#06100a' : C.faint,
                 }}
               >
-                {tint === 'reserved' ? 'rsv' : 'HBM'}
+                {stranded ? 'stranded' : 'HBM'}
               </span>
             </div>
           );
@@ -341,7 +347,7 @@ export function Die({
           opacity: clamp((reveal - 0.5) / 0.4, 0, 1),
         }}
       >
-        {MEM}× MEMORY SLICE · HBM2e
+        {MEM} × 5 GB MEMORY SLICE · HBM2e
       </div>
     </div>
   );

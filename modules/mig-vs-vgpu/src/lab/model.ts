@@ -166,13 +166,22 @@ export function canPlaceVgpu(s: LabState, profile: VgpuProfile): PlaceResult {
 }
 
 export function migMemStrip(s: LabState): (string | null)[] {
+  // One cell per 5 GB memory slice. Each instance lights the slices its
+  // framebuffer actually occupies — a 7g.40gb fills all 8, a 3g.20gb fills 4.
   const strip: (string | null)[] = Array(MEM_SLICES).fill(null);
   let idx = 0;
   for (const inst of s.instances) {
     const slices = Math.max(1, Math.round(inst.gb / 5));
-    for (let k = 0; k < slices && idx < MEM_SLICES - 1; k++) strip[idx++] = inst.color;
+    for (let k = 0; k < slices && idx < MEM_SLICES; k++) strip[idx++] = inst.color;
   }
-  strip[MEM_SLICES - 1] = strip[MEM_SLICES - 1] ?? 'reserved';
+  // The A100 has 8 memory slices but only 7 compute slices. Once every compute
+  // slice is allocated, any still-free memory slice can't be paired with one,
+  // so it's stranded (unusable) — e.g. 7× 1g.5gb leaves the 8th slice's 5 GB
+  // unreachable. Larger profiles (3g.20gb, 7g.40gb…) claim the extra slice, so
+  // nothing is stranded then.
+  if (usedCompute(s) >= TOTAL_COMPUTE) {
+    for (let j = 0; j < MEM_SLICES; j++) if (strip[j] == null) strip[j] = 'stranded';
+  }
   return strip;
 }
 
