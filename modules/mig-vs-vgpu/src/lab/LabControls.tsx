@@ -232,7 +232,11 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>
             Each slice runs an independent scheduler. Add <span style={{ color: accent }}>1–{MAX_VGPU_PER_SLICE} time-sliced vGPUs</span> per slice (NVIDIA MIG time-slicing): across slices they run in parallel &amp; isolated; within a slice they share its compute.
           </div>
-        ) : null}
+        ) : (
+          <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>
+            Instances snap to real MIG <span style={{ color: accent }}>placements</span>: a 2g.10gb may start only at slot 0/2/4, a 3g.20gb at 0/4, a 4g/7g at 0 — so layouts can fragment. Add largest profiles first.
+          </div>
+        )}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
           {MIG_PROFILES.map((p) => {
             const res = canPlaceMig(state, p);

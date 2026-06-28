@@ -76,10 +76,12 @@ export const PRESETS: Preset[] = [
     build: () =>
       build([
         { type: 'setMode', mode: 'mig' },
+        // Largest-first so every instance lands on a legal placement: three
+        // 2g.10gb fill the (0,1)(2,3)(4,5) pairs, the 1g.5gb takes slot 6.
+        { type: 'addMig', profileId: '2g.10gb' },
+        { type: 'addMig', profileId: '2g.10gb' },
         { type: 'addMig', profileId: '2g.10gb' },
         { type: 'addMig', profileId: '1g.5gb' },
-        { type: 'addMig', profileId: '2g.10gb' },
-        { type: 'addMig', profileId: '2g.10gb' },
         ...['gi-0', 'gi-1', 'gi-2', 'gi-3'].map((id) => ({ type: 'setMigWorkload', id, kind: 'training' }) as Action),
         { type: 'toggleFault', id: 'gi-1' },
         { type: 'toggleRunning' },

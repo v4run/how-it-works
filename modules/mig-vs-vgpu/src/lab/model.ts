@@ -129,17 +129,37 @@ export function totalSliceVgpus(s: LabState): number {
   return s.instances.reduce((a, i) => a + i.vgpus.length, 0);
 }
 
-export function findFreeBlock(s: LabState, g: number): number[] | null {
+// Real A100 MIG GPU-instance placements (as reported by
+// `nvidia-smi mig -lgipp`): the *valid start slots* for each profile. A
+// GPU instance can't begin at an arbitrary index — e.g. a 2g.10gb may only
+// start at slot 0, 2 or 4 (the compute slices pair up (0,1)(2,3)(4,5), with
+// slice 6 left over for a 1g), a 3g.20gb only at 0 or 4, and a 4g/7g only at 0.
+export const PLACEMENTS: Record<string, number[]> = {
+  '1g.5gb': [0, 1, 2, 3, 4, 5, 6],
+  '1g.10gb': [0, 2, 4, 6],
+  '2g.10gb': [0, 2, 4],
+  '3g.20gb': [0, 4],
+  '4g.20gb': [0],
+  '7g.40gb': [0],
+};
+
+// First legal, free placement for a profile (lowest start, like nvidia-smi's
+// default), honouring both the valid-start set and the occupied columns.
+export function findPlacement(s: LabState, profile: MigProfile): number[] | null {
   const occupied = new Set<number>();
   for (const inst of s.instances) inst.cols.forEach((c) => occupied.add(c));
-  let run: number[] = [];
-  for (let c = 0; c < TOTAL_COMPUTE; c++) {
-    if (occupied.has(c)) {
-      run = [];
-      continue;
+  for (const start of PLACEMENTS[profile.id] ?? []) {
+    const cols: number[] = [];
+    let ok = true;
+    for (let k = 0; k < profile.g; k++) {
+      const c = start + k;
+      if (c >= TOTAL_COMPUTE || occupied.has(c)) {
+        ok = false;
+        break;
+      }
+      cols.push(c);
     }
-    run.push(c);
-    if (run.length === g) return run.slice();
+    if (ok) return cols;
   }
   return null;
 }
@@ -150,12 +170,15 @@ export interface PlaceResult {
   cols?: number[];
 }
 export function canPlaceMig(s: LabState, profile: MigProfile): PlaceResult {
-  if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
-    return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} compute slice(s) free` };
   if (usedMigMem(s) + profile.gb > TOTAL_MEM_GB)
     return { ok: false, reason: `Only ${TOTAL_MEM_GB - usedMigMem(s)} GB framebuffer free` };
-  const block = findFreeBlock(s, profile.g);
-  if (!block) return { ok: false, reason: 'No contiguous block — fragmentation' };
+  const block = findPlacement(s, profile);
+  if (!block) {
+    if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
+      return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} compute slice(s) free` };
+    const starts = PLACEMENTS[profile.id] ?? [];
+    return { ok: false, reason: `No aligned placement free — ${profile.id} may start only at slot ${starts.join('/')}` };
+  }
   return { ok: true, cols: block };
 }
 
