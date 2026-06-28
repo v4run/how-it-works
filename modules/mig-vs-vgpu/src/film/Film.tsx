@@ -94,7 +94,7 @@ function S0_Title({ lt }: { lt: number }) {
           filter: 'blur(0.3px)',
         }}
       >
-        <Die w={520} h={490} reveal={dieR} litCols={'none'} hideHeader label="GPU DIE" />
+        <Die w={520} h={490} reveal={dieR} litCols={'none'} hideHeader label="GA100 · LOGICAL VIEW" />
       </div>
 
       <div style={{ position: 'absolute', left: 0, right: 0, top: 372, textAlign: 'center' }}>
@@ -145,7 +145,7 @@ function S1_Anatomy({ lt }: { lt: number }) {
     <div style={{ position: 'absolute', inset: 0 }}>
       <CamRig transform={cam(fx, fy, z)}>
         <div style={{ position: 'absolute', left: 960, top: 470, transform: 'translate(-50%,-50%)' }}>
-          <Die w={620} h={560} reveal={reveal} litCols={litCols} label="GA100 · GPU DIE" />
+          <Die w={620} h={560} reveal={reveal} litCols={litCols} label="GA100 · LOGICAL VIEW" />
         </div>
         <Annotation x={745} y={300} dx={-150} dy={-40} title="GPCs → SMs" sub="compute · streaming multiprocessors" lt={lt} delay={4.5} />
         <Annotation x={1175} y={470} dx={150} dy={-10} title="L2 cache + crossbar" sub="shared on-chip bandwidth" lt={lt} delay={6.0} />

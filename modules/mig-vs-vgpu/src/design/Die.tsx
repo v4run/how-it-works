@@ -63,7 +63,7 @@ export function Die({
   memGroups = null,
   dividers = 0,
   pulse = 0,
-  label = 'GA100 · GPU DIE',
+  label = 'GA100 · LOGICAL VIEW',
   hideHeader = false,
   onColClick,
   hoverCol = null,
@@ -106,7 +106,12 @@ export function Die({
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, height: 22 }}>
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint }}>{label}</span>
+          <span
+            style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint, cursor: 'help' }}
+            title="Logical partition map, not the physical die floorplan. Columns are MIG compute slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2e stacks with controllers on the die edges)."
+          >
+            {label}
+          </span>
         ) : (
           <span />
         )}

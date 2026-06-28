@@ -95,7 +95,7 @@ function MigViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
         groups={hasInstances ? groups : null}
         memGroups={hasInstances ? migMemStrip(state) : 'mig'}
         hideHeader={hasInstances}
-        label={backed ? 'A100-40GB · MIG-backed vGPU' : 'A100-40GB · MIG'}
+        label={backed ? 'A100-40GB · MIG-backed · logical' : 'A100-40GB · MIG · logical'}
       />
       {hasInstances ? (
         anyDown ? (
@@ -147,7 +147,7 @@ function VgpuViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
           litCols={running && activeVm ? 'all' : 'none'}
           activeAccent={stalled ? C.red : activeColor}
           memGroups={hasVms ? vgpuMemStrip(state) : null}
-          label="A100-40GB · vGPU (SR-IOV)"
+          label="A100-40GB · vGPU · logical"
         />
         {running && activeVm ? (
           <div
