@@ -148,8 +148,8 @@ function S1_Anatomy({ lt }: { lt: number }) {
           <Die w={620} h={560} reveal={reveal} litCols={litCols} label="GA100 · LOGICAL VIEW" />
         </div>
         <Annotation x={745} y={300} dx={-150} dy={-40} title="GPCs → SMs" sub="compute · streaming multiprocessors" lt={lt} delay={4.5} />
-        <Annotation x={1175} y={470} dx={150} dy={-10} title="L2 cache + crossbar" sub="shared on-chip bandwidth" lt={lt} delay={6.0} />
-        <Annotation x={1175} y={628} dx={150} dy={20} title="Memory controllers" sub="8 slices → HBM2 stacks" lt={lt} delay={7.5} />
+        <Annotation x={1180} y={643} dx={150} dy={-46} title="L2 cache + crossbar" sub="shared on-chip bandwidth" lt={lt} delay={6.0} />
+        <Annotation x={1180} y={688} dx={150} dy={28} title="Memory controllers" sub="8 slices → HBM2 stacks" lt={lt} delay={7.5} />
       </CamRig>
 
       <Caption
