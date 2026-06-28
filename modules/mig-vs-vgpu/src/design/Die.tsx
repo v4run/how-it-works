@@ -1,15 +1,16 @@
 // The shared GPU-die visual — ported from the prototype.
 // 7 GPC-slice columns × 16 SMs each = 112 SMs (one rectangle = one SM).
-// That's the H100 SXM5's MIG-addressable SM count: 16 SMs per GPC slice, 7
-// slices. The full H100 SXM5 has 132 SMs; the remaining 20 aren't exposed to
-// MIG. (Confirm the per-slice SM count with `nvidia-smi mig -lgip`.)
+// Confirmed on real H100 SXM5 hardware (nvidia-smi mig -lgip): 1g.10gb = 16 SMs,
+// 7g.80gb = 132 SMs. So a single full 7g instance spans all 132 SMs, but cutting
+// the GPU into 7 equal slices only reaches 7 × 16 = 112 — the other 20 SMs can't
+// be split evenly across 7 slices, so they go idle in a max-density partition.
 // Plus an L2 band and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
 
 export const COLS = 7; // GPC slices (max MIG instances)
-export const ROWS = 16; // SMs per GPC slice → 7 × 16 = 112 (verify: nvidia-smi mig -lgip)
-export const TOTAL_SMS = 132; // SMs on the H100 SXM5 die (112 in MIG slices + 20 reserved)
+export const ROWS = 16; // SMs per GPC slice (1g.10gb = 16, confirmed on H100 SXM5)
+export const TOTAL_SMS = 132; // SMs on the H100 SXM5 die; a 7g.80gb uses all 132, a 7-way split reaches 112
 export const MEM = 8;
 
 export interface DieGroup {
@@ -117,7 +118,7 @@ export function Die({
           <span />
         )}
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 16 SMs per GPC slice × 7 slices = 112; the H100 SXM5 die has 132 SMs (20 reserved, not MIG-addressable). Confirm via nvidia-smi mig -lgip.">
+          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). On H100 SXM5: each 1g.10gb slice = 16 SMs, so a 7-way split reaches 7 × 16 = 112. The die has 132 SMs and a single 7g.80gb instance uses all 132 — the 20-SM gap only appears when you cut into 7 equal slices. (nvidia-smi mig -lgip.)">
             {COLS} × {ROWS} SMs = {COLS * ROWS} of {TOTAL_SMS}
           </span>
         ) : null}
