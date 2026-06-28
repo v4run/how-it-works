@@ -118,9 +118,20 @@ export function LabViz({ state, snap }: { state: LabState; snap: SimSnapshot }) 
           {/* spines */}
           {Array.from({ length: SPINES }).map((_, j) => {
             const rr = state.ctrlPlane === 'evpn';
+            const activeSpine = !!(flow && plan && plan.crossesFabric && plan.outcome === 'delivered' && plan.spine === j);
             return (
               <g key={`s${j}`}>
-                <rect x={spineCx(j) - SPINE_W / 2} y={SY_TOP} width={SPINE_W} height={SY_H} rx={9} fill={C.panel} stroke={rr ? C.greenEdge : C.steelLine} strokeWidth={1.4} />
+                <rect
+                  x={spineCx(j) - SPINE_W / 2}
+                  y={SY_TOP}
+                  width={SPINE_W}
+                  height={SY_H}
+                  rx={9}
+                  fill={C.panel}
+                  stroke={activeSpine ? C.steel : rr ? C.greenEdge : C.steelLine}
+                  strokeWidth={activeSpine ? 2.2 : 1.4}
+                  style={{ filter: activeSpine ? 'drop-shadow(0 0 10px rgba(111,147,184,0.6))' : 'none' }}
+                />
                 <text x={spineCx(j)} y={SY_TOP + 22} textAnchor="middle" fontFamily={DISP} fontWeight={600} fontSize={15} fill={C.ink}>Spine-{j + 1}</text>
                 <text x={spineCx(j)} y={SY_TOP + 40} textAnchor="middle" fontFamily={MONO} fontSize={10.5} fill={rr ? C.green : C.dim}>
                   {rr ? 'MP-BGP route reflector' : 'IP transit'}

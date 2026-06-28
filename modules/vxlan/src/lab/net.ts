@@ -158,7 +158,11 @@ export function planFlow(s: LabState, learnedKeys: Set<string>): FlowPlan | null
 
   const srcSeg = segmentById(s, src.segmentId);
   const ingressLeaf = src.leafIdx;
-  const spine = 0;
+  // ECMP: the outer UDP source port is a hash of the inner flow, so the spine
+  // is picked per-flow. Mimic that entropy with a hash of the flow (src/dst
+  // host, ingress/egress leaf, VNI) → a flow lands on Spine-1 or Spine-2, and
+  // different flows spread across both.
+  const spine = dst ? (src.num * 2 + dst.num * 3 + src.leafIdx * 4 + dst.leafIdx * 5 + (srcSeg?.vni ?? 0)) % SPINES : 0;
 
   const base: Omit<FlowPlan, 'outcome' | 'steps' | 'headers' | 'pathNodes' | 'arpMode' | 'floodTargets' | 'learns' | 'fragWarn' | 'crossesFabric' | 'intraLeaf' | 'egressLeaf'> = {
     src,
@@ -277,7 +281,7 @@ export function planFlow(s: LabState, learnedKeys: Set<string>): FlowPlan | null
     if (fragWarn) {
       steps.push({ key: 'mtu', title: 'MTU too small', detail: 'Underlay (L3) MTU is 1500. A full 1500-byte inner frame + 50 B overlay = 1550 B > 1500 → the encapsulated packet must fragment into multiple IP packets, or — since VTEPs usually set the outer DF bit — is silently dropped. Raise the underlay to jumbo (9000).', kind: 'warn' });
     }
-    steps.push({ key: 'ecmp', title: 'Underlay routing (ECMP)', detail: `Spine routes it as ordinary IP toward ${leafLoopback(egressLeaf)}, hashing the UDP source port to spread load. Spines never see the VNI.`, kind: 'info' });
+    steps.push({ key: 'ecmp', title: 'Underlay routing (ECMP)', detail: `ECMP hashes the UDP source port → Spine-${spine + 1} carries this flow, routing it as ordinary IP toward ${leafLoopback(egressLeaf)}. A different flow can hash to the other spine. Spines never see the VNI.`, kind: 'info' });
     steps.push({ key: 'decap', title: 'Decapsulate', detail: `${leafName(egressLeaf)} strips the outer headers, reads VNI ${seg.vni}, and recovers the original frame.`, kind: 'info' });
 
     // Flood mode learns the remote MAC on both ends after the exchange.
