@@ -237,7 +237,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
         }}
       >
         <Chip accent={C.mig}>7 GPC slices</Chip>
-        <Chip accent={C.mig}>8 memory slices · 1 stranded</Chip>
+        <Chip accent={C.mig}>8 memory slices · 1 stranded at 7× 1g</Chip>
         <Chip accent={C.mig}>hard-wired in hardware</Chip>
       </div>
 
