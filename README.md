@@ -5,13 +5,6 @@ works. Each **module** is its own small web app; they're built and stitched toge
 into a single static site (a landing page + one subpath per module) that deploys to
 **GitHub Pages**.
 
-## Live site
-
-After enabling Pages (see below), the site is served at:
-
-- Landing page → `https://<user>.github.io/<repo>/`
-- Each module → `https://<user>.github.io/<repo>/<slug>/`
-
 ## Repository layout
 
 ```
