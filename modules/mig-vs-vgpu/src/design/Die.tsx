@@ -108,7 +108,7 @@ export function Die({
         {!hideHeader ? (
           <span
             style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint, cursor: 'help' }}
-            title="Logical partition map, not the physical die floorplan. Columns are MIG GPC slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2 stacks with controllers on the die edges)."
+            title="Logical partition map, not the physical die floorplan. Columns are MIG GPC slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices — each bundles 5 GB of HBM2 with its share of the memory controllers + L2 (the FBP resources). It is not a literal floorplan: the A100 has 5 active HBM2 stacks with controllers on the die edges, and the FBP count differs from 8."
           >
             {label}
           </span>
@@ -309,7 +309,7 @@ export function Die({
               title={
                 stranded
                   ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 GPC slices, so this 5 GB slice has no GPC slice to pair with and is unusable.'
-                  : 'MIG memory slice — 5 GB, HBM2-backed (not a physical FBP).'
+                  : 'MIG memory slice — 5 GB of HBM2 plus its share of the memory controllers + L2 cache (the FBP resources).'
               }
               style={{
                 flex: 1,
