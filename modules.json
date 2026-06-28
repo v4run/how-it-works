@@ -9,8 +9,8 @@
       "slug": "mig-vs-vgpu",
       "dir": "modules/mig-vs-vgpu",
       "title": "MIG vs vGPU — Internals",
-      "description": "How NVIDIA partitions a datacenter GPU. Build MIG slices, vGPUs and MIG-backed vGPUs, run workloads, and watch spatial vs temporal scheduling, fault isolation and time-slicing live. Includes a ~3-minute explainer film.",
-      "tags": ["NVIDIA", "GPU", "MIG", "vGPU", "virtualization"],
+      "description": "How NVIDIA partitions a datacenter GPU (modelled on the H100 SXM5 80GB). Build MIG slices, vGPUs and MIG-backed vGPUs, run workloads, and watch spatial vs temporal scheduling, fault isolation and time-slicing live. Includes a ~3-minute explainer film.",
+      "tags": ["NVIDIA", "H100", "Hopper", "MIG", "vGPU", "virtualization"],
       "accent": "#85c20a"
     },
     {

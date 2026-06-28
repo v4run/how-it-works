@@ -94,7 +94,7 @@ function S0_Title({ lt }: { lt: number }) {
           filter: 'blur(0.3px)',
         }}
       >
-        <Die w={520} h={490} reveal={dieR} litCols={'none'} hideHeader label="GA100 · LOGICAL VIEW" />
+        <Die w={520} h={490} reveal={dieR} litCols={'none'} hideHeader label="GH100 · LOGICAL VIEW" />
       </div>
 
       <div style={{ position: 'absolute', left: 0, right: 0, top: 372, textAlign: 'center' }}>
@@ -145,11 +145,11 @@ function S1_Anatomy({ lt }: { lt: number }) {
     <div style={{ position: 'absolute', inset: 0 }}>
       <CamRig transform={cam(fx, fy, z)}>
         <div style={{ position: 'absolute', left: 960, top: 470, transform: 'translate(-50%,-50%)' }}>
-          <Die w={620} h={560} reveal={reveal} litCols={litCols} label="GA100 · LOGICAL VIEW" />
+          <Die w={620} h={560} reveal={reveal} litCols={litCols} label="GH100 · LOGICAL VIEW" />
         </div>
         <Annotation x={745} y={300} dx={-150} dy={-40} title="GPCs → SMs" sub="compute · streaming multiprocessors" lt={lt} delay={4.5} />
         <Annotation x={1180} y={643} dx={150} dy={-46} title="L2 cache + crossbar" sub="shared on-chip bandwidth" lt={lt} delay={6.0} />
-        <Annotation x={1180} y={688} dx={150} dy={28} title="Memory controllers" sub="8 slices → HBM2 stacks" lt={lt} delay={7.5} />
+        <Annotation x={1180} y={688} dx={150} dy={28} title="Memory controllers" sub="8 slices → HBM3 stacks" lt={lt} delay={7.5} />
       </CamRig>
 
       <Caption
@@ -205,7 +205,7 @@ function S2_Split({ lt }: { lt: number }) {
 function S3_MigSlice({ lt }: { lt: number }) {
   const dividers = clamp((lt - 2.5) / 2.0, 0, 1);
   const memAssign = clamp((lt - 9) / 3.5, 0, 1);
-  // Seven 1g.5gb slices each take one memory slice (7 of 8); the 8th has no
+  // Seven 1g.10gb slices each take one memory slice (7 of 8); the 8th has no
   // GPC slice left to pair with, so it's stranded — not reserved.
   const memGroups = lt > 9
     ? Array.from({ length: 8 }, (_, i) => {
@@ -222,7 +222,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
     <div style={{ position: 'absolute', inset: 0 }}>
       <CamRig transform={cam(960, 430, z)}>
         <div style={{ position: 'absolute', left: 960, top: 430, transform: 'translate(-50%,-50%)' }}>
-          <Die w={680} h={540} accent={C.mig} reveal={1} litCols={'all'} dividers={dividers} groups={groups} memGroups={memGroups} label="MIG · GA100" />
+          <Die w={680} h={540} accent={C.mig} reveal={1} litCols={'all'} dividers={dividers} groups={groups} memGroups={memGroups} label="MIG · GH100" />
         </div>
       </CamRig>
       <div
@@ -237,7 +237,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
         }}
       >
         <Chip accent={C.mig}>7 GPC slices</Chip>
-        <Chip accent={C.mig}>8 memory slices · 1 stranded at 7× 1g</Chip>
+        <Chip accent={C.mig}>8 memory slices · 1 stranded at 7× 1g.10gb</Chip>
         <Chip accent={C.mig}>hard-wired in hardware</Chip>
       </div>
 
@@ -249,7 +249,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
         body={
           lt > 9
             ? 'Each GPU Instance gets dedicated SMs, its own L2 slices and its own memory controllers. The crossbar paths are partitioned too — these are real, electrically-isolated boundaries, not software quotas.'
-            : 'On an A100, the silicon divides into 7 GPC slices and 8 memory slices — fixed partitions etched across the GPCs and memory system.'
+            : 'On an H100, the silicon divides into 7 GPC slices and 8 memory slices — fixed partitions etched across the GPCs and memory system.'
         }
       />
     </div>
@@ -259,19 +259,19 @@ function S3_MigSlice({ lt }: { lt: number }) {
 /* ── SCENE 4 — MIG PROFILES (63–82) ─────────────────────────────────────── */
 function S4_Profiles({ lt }: { lt: number }) {
   const layout = [
-    { cols: [0, 1, 2], label: '3g.20gb', t: 0.4 },
-    { cols: [3, 4], label: '2g.10gb', t: 1.4 },
-    { cols: [5], label: '1g.5gb', t: 2.4 },
-    { cols: [6], label: '1g.5gb', t: 3.0 },
+    { cols: [0, 1, 2], label: '3g.40gb', t: 0.4 },
+    { cols: [3, 4], label: '2g.20gb', t: 1.4 },
+    { cols: [5], label: '1g.10gb', t: 2.4 },
+    { cols: [6], label: '1g.10gb', t: 3.0 },
   ];
   const groups = layout
     .filter((g) => lt > 5 + g.t)
     .map((g) => ({ cols: g.cols, label: g.label, color: C.mig, o: clamp((lt - 5 - g.t) / 0.5, 0, 1) }));
-  // 3g.20gb (4 slices) + 2g.10gb (2) + 1g.5gb (1) + 1g.5gb (1) = all 8 memory
-  // slices, 7 GPC slices — the full 40 GB is claimed, nothing stranded.
+  // 3g.40gb (4 slices) + 2g.20gb (2) + 1g.10gb (1) + 1g.10gb (1) = all 8 memory
+  // slices, 7 GPC slices — the full 80 GB is claimed, nothing stranded.
   const memGroups = lt > 5 ? Array.from({ length: 8 }, (_, i) => (lt > 5.4 + i * 0.2 ? C.mig : null)) : null;
 
-  const profiles = ['1g.5gb', '1g.10gb', '2g.10gb', '3g.20gb', '4g.20gb', '7g.40gb'];
+  const profiles = ['1g.10gb', '1g.20gb', '2g.20gb', '3g.40gb', '4g.40gb', '7g.80gb'];
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       <div style={{ position: 'absolute', left: 560, top: 446, transform: 'translate(-50%,-50%)' }}>
@@ -280,7 +280,7 @@ function S4_Profiles({ lt }: { lt: number }) {
 
       <div style={{ position: 'absolute', right: 150, top: 250, width: 470, opacity: clamp((lt - 1.0) / 0.8, 0, 1) }}>
         <Kicker accent={C.mig} lt={lt}>
-          Profile catalog · A100-40GB
+          Profile catalog · H100 80GB
         </Kicker>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 22 }}>
           {profiles.map((p, i) => {
@@ -321,8 +321,8 @@ function S4_Profiles({ lt }: { lt: number }) {
         lt={lt}
         kicker="MIG · fixed profiles"
         accent={C.mig}
-        title="Profiles name the slice: 1g.5gb → 7g.40gb."
-        body="Mix and match instances to fit the workload — here a 3g.20gb beside a 2g.10gb and two 1g.5gb. Each is a complete, independent GPU to CUDA."
+        title="Profiles name the slice: 1g.10gb → 7g.80gb."
+        body="Mix and match instances to fit the workload — here a 3g.40gb beside a 2g.20gb and two 1g.10gb. Each is a complete, independent GPU to CUDA."
       />
     </div>
   );
@@ -412,7 +412,7 @@ function S6_SRIOV({ lt }: { lt: number }) {
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
       <div style={{ position: 'absolute', left: 600, top: 392, transform: 'translate(-50%,-50%)' }}>
-        <Die w={560} h={470} accent={C.vgpu} reveal={1} litCols={'all'} memGroups={memGroups} label="vGPU · GA100 (SR-IOV)" />
+        <Die w={560} h={470} accent={C.vgpu} reveal={1} litCols={'all'} memGroups={memGroups} label="vGPU · GH100 (SR-IOV)" />
       </div>
 
       <div style={{ position: 'absolute', right: 140, top: 250, width: 500 }}>
@@ -441,7 +441,7 @@ function S6_SRIOV({ lt }: { lt: number }) {
                   VF{i}
                 </span>
                 <span style={{ fontFamily: DISP, fontSize: 22, fontWeight: 600, color: C.ink }}>{vm}</span>
-                <span style={{ fontFamily: MONO, fontSize: 14, color: C.dim, marginLeft: 'auto' }}>A100-2-10C</span>
+                <span style={{ fontFamily: MONO, fontSize: 14, color: C.dim, marginLeft: 'auto' }}>H100-2-20C</span>
               </div>
             );
           })}
@@ -628,7 +628,7 @@ function S9_Compare({ lt }: { lt: number }) {
     ['Memory', 'Dedicated controllers + slices', 'Static framebuffer per profile'],
     ['Fault isolation', 'Hardware-enforced', 'Memory only · compute shared'],
     ['QoS', 'Guaranteed BW + L2', 'Scheduler policy (BE/Equal/Fixed)'],
-    ['Granularity', 'Fixed profiles (1g.5gb…7g.40gb)', 'Flexible framebuffer (C-series)'],
+    ['Granularity', 'Fixed profiles (1g.10gb…7g.80gb)', 'Flexible framebuffer (C-series)'],
     ['Best for', 'Guaranteed multi-tenant inference', 'VM density · VDI · flexible sharing'],
   ];
   const titleO = clamp(lt / 0.6, 0, 1);
@@ -720,7 +720,7 @@ function S10_Combine({ lt }: { lt: number }) {
       <div style={{ position: 'absolute', left: 480, top: 380, transform: 'translate(-50%,0)', width: 560, opacity: stackO }}>
         <div style={{ position: 'relative' }}>
           <div style={{ border: `1.5px solid ${C.mig}`, borderRadius: 14, padding: 18, background: C.migSoft, boxShadow: `0 0 30px ${C.mig}33` }}>
-            <div style={{ fontFamily: MONO, fontSize: 15, color: C.mig, letterSpacing: '0.1em', marginBottom: 12 }}>MIG INSTANCE · 3g.20gb</div>
+            <div style={{ fontFamily: MONO, fontSize: 15, color: C.mig, letterSpacing: '0.1em', marginBottom: 12 }}>MIG INSTANCE · 3g.40gb</div>
             <Die w={520} h={240} accent={C.mig} reveal={1} litCols={[0, 1, 2]} label="" />
           </div>
           <div

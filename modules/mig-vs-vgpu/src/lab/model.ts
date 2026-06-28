@@ -1,5 +1,5 @@
 // GPU simulation domain model for the interactive lab.
-// Models an A100-40GB: 7 GPC slices (SM columns) + 8 memory slices (HBM2).
+// Models an H100 SXM5 80GB: 7 GPC slices (SM columns) + 8 memory slices (HBM3).
 //
 // Three partitioning modes:
 //   - MIG        : spatial — GPU Instances own dedicated, contiguous GPC
@@ -15,8 +15,9 @@
 import { C, VM_COLORS } from '../design/theme';
 
 export const TOTAL_COMPUTE = 7;
-export const TOTAL_MEM_GB = 40;
+export const TOTAL_MEM_GB = 80;
 export const MEM_SLICES = 8;
+export const MEM_PER_SLICE_GB = TOTAL_MEM_GB / MEM_SLICES; // 10 GB on H100 80GB
 export const MAX_VGPU_PER_SLICE = 3;
 
 export type Mode = 'mig' | 'vgpu' | 'mig-vgpu';
@@ -40,13 +41,15 @@ export interface MigProfile {
   g: number;
   gb: number;
 }
+// H100 80GB GPU-instance profiles (nvidia-smi mig -lgip). Same GPC-slice (g)
+// structure as the A100 — only the memory doubles (10 GB per memory slice).
 export const MIG_PROFILES: MigProfile[] = [
-  { id: '1g.5gb', g: 1, gb: 5 },
   { id: '1g.10gb', g: 1, gb: 10 },
-  { id: '2g.10gb', g: 2, gb: 10 },
-  { id: '3g.20gb', g: 3, gb: 20 },
-  { id: '4g.20gb', g: 4, gb: 20 },
-  { id: '7g.40gb', g: 7, gb: 40 },
+  { id: '1g.20gb', g: 1, gb: 20 }, // 1 GPC slice, 2 memory slices
+  { id: '2g.20gb', g: 2, gb: 20 },
+  { id: '3g.40gb', g: 3, gb: 40 },
+  { id: '4g.40gb', g: 4, gb: 40 },
+  { id: '7g.80gb', g: 7, gb: 80 },
 ];
 
 export interface VgpuProfile {
@@ -54,12 +57,12 @@ export interface VgpuProfile {
   fb: number;
 }
 export const VGPU_PROFILES: VgpuProfile[] = [
-  { id: 'A100-4C', fb: 4 },
-  { id: 'A100-5C', fb: 5 },
-  { id: 'A100-8C', fb: 8 },
-  { id: 'A100-10C', fb: 10 },
-  { id: 'A100-20C', fb: 20 },
-  { id: 'A100-40C', fb: 40 },
+  { id: 'H100-8C', fb: 8 },
+  { id: 'H100-10C', fb: 10 },
+  { id: 'H100-16C', fb: 16 },
+  { id: 'H100-20C', fb: 20 },
+  { id: 'H100-40C', fb: 40 },
+  { id: 'H100-80C', fb: 80 },
 ];
 
 // A time-sliced vGPU living on a MIG slice (MIG-backed mode).
@@ -129,14 +132,15 @@ export function totalSliceVgpus(s: LabState): number {
   return s.instances.reduce((a, i) => a + i.vgpus.length, 0);
 }
 
-// NVIDIA's 19 valid MIG configurations for the A100 — the authoritative
-// placement table from the MIG user guide. Each config is the set of compute
-// blocks {start, size} it carves from the 7 GPC slices; slots not covered are
-// unused (the grey cells in NVIDIA's figure). A layout is legal iff its placed
-// blocks are a subset of one of these.
+// NVIDIA's 19 valid MIG configurations — the authoritative placement table
+// from the MIG user guide. Identical on the H100 and A100: same 7 GPC-slice /
+// 8 memory-slice geometry, only the memory per slice differs. Each config is
+// the set of compute blocks {start, size} it carves from the 7 GPC slices;
+// slots not covered are unused (the grey cells in NVIDIA's figure). A layout is
+// legal iff its placed blocks are a subset of one of these.
 //
 // This is the source of truth precisely because the rules don't reduce to a
-// clean per-profile "valid start" set: a 3g.20gb is memory-heavy (3 compute /
+// clean per-profile "valid start" set: a 3g.40gb is memory-heavy (3 compute /
 // 4 memory slices), so it only fully packs the die when it sits on the right
 // (e.g. config 8 `2|2|3`) — a 3g on the left always strands a slice (configs
 // 5–7 end in grey). Validating against the enumerated configs captures that
@@ -197,7 +201,7 @@ export function canPlaceMig(s: LabState, profile: MigProfile): PlaceResult {
   if (best) return { ok: true, cols: best };
   if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
     return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} GPC slice(s) free` };
-  return { ok: false, reason: `No valid A100 MIG layout fits a ${profile.id} here — remove an instance or add it in a different order` };
+  return { ok: false, reason: `No valid H100 MIG layout fits a ${profile.id} here — remove an instance or add it in a different order` };
 }
 
 // Can any profile still be added? (Used to decide when free slices are stranded.)
@@ -212,16 +216,16 @@ export function canPlaceVgpu(s: LabState, profile: VgpuProfile): PlaceResult {
 }
 
 export function migMemStrip(s: LabState): (string | null)[] {
-  // One cell per 5 GB memory slice. Each instance lights the slices its
-  // framebuffer actually occupies — a 7g.40gb fills all 8, a 3g.20gb fills 4.
+  // One cell per 10 GB memory slice. Each instance lights the slices its
+  // framebuffer actually occupies — a 7g.80gb fills all 8, a 3g.40gb fills 4.
   const strip: (string | null)[] = Array(MEM_SLICES).fill(null);
   let idx = 0;
   for (const inst of s.instances) {
-    const slices = Math.max(1, Math.round(inst.gb / 5));
+    const slices = Math.max(1, Math.round(inst.gb / MEM_PER_SLICE_GB));
     for (let k = 0; k < slices && idx < MEM_SLICES; k++) strip[idx++] = inst.color;
   }
   // A free memory slice is stranded once nothing more can be placed on the GPU
-  // — e.g. 7× 1g.5gb leaves the 8th slice's 5 GB unreachable, and a left-3g
+  // — e.g. 7× 1g.10gb leaves the 8th slice's 10 GB unreachable, and a left-3g
   // layout (config 6) strands a slice too. If another instance can still be
   // added, the free slices aren't stranded yet.
   if (!canAddAnyMig(s)) {

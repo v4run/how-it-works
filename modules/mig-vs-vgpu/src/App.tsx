@@ -38,7 +38,7 @@ function TopBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           MIG <span style={{ color: C.faint, fontWeight: 400 }}>vs</span> <span style={{ color: C.vgpu }}>vGPU</span>
         </span>
         <span style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.18em', textTransform: 'uppercase', marginLeft: 4 }}>
-          Internals
+          H100 · Internals
         </span>
       </div>
 

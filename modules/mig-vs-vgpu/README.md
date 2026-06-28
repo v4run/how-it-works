@@ -24,19 +24,20 @@ from the prototype.
 
 ## What you can do in the Lab
 
-Model is an **A100-40GB**: 7 compute slices (GPC/SM columns) + 8 memory slices.
+Model is an **H100 SXM5 80GB**: 7 GPC slices (SM columns) + 8 memory slices.
 
 ### MIG · spatial
-- Add GPU Instances from real profiles (`1g.5gb` … `7g.40gb`). The allocator
-  enforces the 7-slice compute budget, the 40 GB framebuffer budget, and
-  contiguous placement (you can fragment yourself out of a slot).
+- Add GPU Instances from real profiles (`1g.10gb` … `7g.80gb`). Placement is
+  validated against NVIDIA's 19 valid MIG layouts (so e.g. a memory-heavy
+  `3g.40gb` only packs when it sits on the right), alongside the 7-GPC-slice and
+  80 GB framebuffer budgets — you can fragment yourself out of a slot.
 - Assign a workload (idle / inference / render / training) per instance.
 - **Bind a VM** onto an instance (SR-IOV VF) to create a **MIG-backed vGPU**.
 - **Inject an XID fault** — it halts only that instance; neighbours keep running.
   This is the spatial-isolation lesson, shown live.
 
 ### vGPU · temporal
-- Create VMs from C-series profiles (`A100-4C` … `A100-40C`); each carves a static
+- Create VMs from C-series profiles (`H100-8C` … `H100-80C`); each carves a static
   framebuffer (memory isolation) and binds a Virtual Function.
 - Pick a scheduler policy — **best-effort / equal-share / fixed-share** — and a
   time quantum. The whole SM array is handed to one VM at a time; the wheel shows

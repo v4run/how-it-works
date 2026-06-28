@@ -1,14 +1,15 @@
 // The shared GPU-die visual — ported from the prototype.
-// 7 GPC-slice columns × 14 SMs each = 98 SMs (one rectangle = one SM).
-// That's the A100's MIG-addressable SM count: 14 SMs per GPC slice, 7
-// slices. The full A100 has 108 SMs; the remaining 10 aren't exposed to MIG.
+// 7 GPC-slice columns × 16 SMs each = 112 SMs (one rectangle = one SM).
+// That's the H100 SXM5's MIG-addressable SM count: 16 SMs per GPC slice, 7
+// slices. The full H100 SXM5 has 132 SMs; the remaining 20 aren't exposed to
+// MIG. (Confirm the per-slice SM count with `nvidia-smi mig -lgip`.)
 // Plus an L2 band and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
 
 export const COLS = 7; // GPC slices (max MIG instances)
-export const ROWS = 14; // SMs per GPC slice → 7 × 14 = 98 SMs drawn
-export const TOTAL_SMS = 108; // SMs on the A100 die (98 in MIG slices + 10 reserved)
+export const ROWS = 16; // SMs per GPC slice → 7 × 16 = 112 (verify: nvidia-smi mig -lgip)
+export const TOTAL_SMS = 132; // SMs on the H100 SXM5 die (112 in MIG slices + 20 reserved)
 export const MEM = 8;
 
 export interface DieGroup {
@@ -63,7 +64,7 @@ export function Die({
   memGroups = null,
   dividers = 0,
   pulse = 0,
-  label = 'GA100 · LOGICAL VIEW',
+  label = 'GH100 · LOGICAL VIEW',
   hideHeader = false,
   onColClick,
   hoverCol = null,
@@ -108,7 +109,7 @@ export function Die({
         {!hideHeader ? (
           <span
             style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint, cursor: 'help' }}
-            title="Logical partition map, not the physical die floorplan. Columns are MIG GPC slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices — each bundles 5 GB of HBM2 with its share of the memory controllers + L2 (the FBP resources). It is not a literal floorplan: the A100 has 5 active HBM2 stacks with controllers on the die edges, and the FBP count differs from 8."
+            title="Logical partition map, not the physical die floorplan. Columns are MIG GPC slices (the real GH100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices — each bundles 10 GB of HBM3 with its share of the memory controllers + L2 (the FBP resources). It is not a literal floorplan: the H100 SXM5 has 5 active HBM3 stacks with controllers on the die edges, and the FBP count differs from 8."
           >
             {label}
           </span>
@@ -116,7 +117,7 @@ export function Die({
           <span />
         )}
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 14 SMs per GPC slice × 7 slices = 98; the A100 die has 108 SMs (10 reserved, not MIG-addressable).">
+          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 16 SMs per GPC slice × 7 slices = 112; the H100 SXM5 die has 132 SMs (20 reserved, not MIG-addressable). Confirm via nvidia-smi mig -lgip.">
             {COLS} × {ROWS} SMs = {COLS * ROWS} of {TOTAL_SMS}
           </span>
         ) : null}
@@ -291,7 +292,7 @@ export function Die({
         <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.34em', color: C.faint }}>L2 CACHE · CROSSBAR</span>
       </div>
 
-      {/* memory strip — 8 MIG memory slices (5 GB each, HBM2-backed) */}
+      {/* memory strip — 8 MIG memory slices (10 GB each, HBM3-backed) */}
       <div style={{ marginTop: 12, display: 'flex', gap: 6, height: 40 }}>
         {Array.from({ length: MEM }).map((_, mi) => {
           const tint = memGroups && memGroups !== 'mig' ? memGroups[mi] : null;
@@ -308,8 +309,8 @@ export function Die({
               key={mi}
               title={
                 stranded
-                  ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 GPC slices, so this 5 GB slice has no GPC slice to pair with and is unusable.'
-                  : 'MIG memory slice — 5 GB of HBM2 plus its share of the memory controllers + L2 cache (the FBP resources).'
+                  ? 'Stranded memory slice: the H100 has 8 memory slices but only 7 GPC slices, so this 10 GB slice has no GPC slice to pair with and is unusable.'
+                  : 'MIG memory slice — 10 GB of HBM3 plus its share of the memory controllers + L2 cache (the FBP resources).'
               }
               style={{
                 flex: 1,
@@ -347,7 +348,7 @@ export function Die({
           opacity: clamp((reveal - 0.5) / 0.4, 0, 1),
         }}
       >
-        {MEM} × 5 GB MEMORY SLICE · HBM2
+        {MEM} × 10 GB MEMORY SLICE · HBM3
       </div>
     </div>
   );
