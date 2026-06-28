@@ -25,31 +25,29 @@ function TopBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
-        gap: 20,
+        gap: 16,
         padding: '0 22px',
         borderBottom: `1px solid ${C.line}`,
         background: 'rgba(8,11,9,0.9)',
         zIndex: 2,
+        overflow: 'hidden',
       }}
     >
       <a
         href="../"
         title="Back to all modules"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontFamily: MONO, fontSize: 13, color: C.dim, border: `1px solid ${C.line}`, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, textDecoration: 'none', fontFamily: MONO, fontSize: 13, color: C.dim, border: `1px solid ${C.line}`, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}
       >
         ← Home
       </a>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexShrink: 0 }}>
         <span style={{ width: 10, height: 10, borderRadius: 3, background: C.green, boxShadow: `0 0 10px ${C.green}` }} />
-        <span style={{ fontFamily: DISP, fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: '-0.01em' }}>
+        <span style={{ fontFamily: DISP, fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
           NVIDIA <span style={{ color: C.faint, fontWeight: 400 }}>Infra Controller</span> <span style={{ color: C.green }}>NICo</span>
-        </span>
-        <span style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.18em', textTransform: 'uppercase', marginLeft: 4 }}>
-          Bare metal, automated
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginLeft: 12 }}>
+      <div style={{ display: 'flex', gap: 6, marginLeft: 6, flexShrink: 0 }}>
         <TabButton on={tab === 'lab'} label="Lab" sub="interactive" onClick={() => setTab('lab')} />
         <TabButton on={tab === 'learn'} label="Learn" sub="explainer film" onClick={() => setTab('learn')} />
       </div>
@@ -73,7 +71,7 @@ function TopBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         ⚠ work in progress · may contain mistakes
       </span>
 
-      <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.12em' }}>
+      <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, letterSpacing: '0.12em', whiteSpace: 'nowrap', flexShrink: 0 }}>
         {tab === 'lab' ? 'declare · provision · isolate' : 'space ▸ play · ← → seek'}
       </div>
     </div>
