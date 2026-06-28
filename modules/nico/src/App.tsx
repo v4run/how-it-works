@@ -32,6 +32,13 @@ function TopBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
         zIndex: 2,
       }}
     >
+      <a
+        href="../"
+        title="Back to all modules"
+        style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontFamily: MONO, fontSize: 13, color: C.dim, border: `1px solid ${C.line}`, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+      >
+        ← Home
+      </a>
       <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
         <span style={{ width: 10, height: 10, borderRadius: 3, background: C.green, boxShadow: `0 0 10px ${C.green}` }} />
         <span style={{ fontFamily: DISP, fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: '-0.01em' }}>
