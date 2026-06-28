@@ -129,57 +129,80 @@ export function totalSliceVgpus(s: LabState): number {
   return s.instances.reduce((a, i) => a + i.vgpus.length, 0);
 }
 
-// Real A100 MIG GPU-instance placements (as reported by
-// `nvidia-smi mig -lgipp`): the *valid start slots* for each profile. A
-// GPU instance can't begin at an arbitrary index — e.g. a 2g.10gb may only
-// start at slot 0, 2 or 4 (the compute slices pair up (0,1)(2,3)(4,5), with
-// slice 6 left over for a 1g), a 3g.20gb only at 0 or 4, and a 4g/7g only at 0.
-export const PLACEMENTS: Record<string, number[]> = {
-  '1g.5gb': [0, 1, 2, 3, 4, 5, 6],
-  '1g.10gb': [0, 2, 4, 6],
-  '2g.10gb': [0, 2, 4],
-  '3g.20gb': [0, 4],
-  '4g.20gb': [0],
-  '7g.40gb': [0],
-};
+// NVIDIA's 19 valid MIG configurations for the A100 — the authoritative
+// placement table from the MIG user guide. Each config is the set of compute
+// blocks {start, size} it carves from the 7 GPC slices; slots not covered are
+// unused (the grey cells in NVIDIA's figure). A layout is legal iff its placed
+// blocks are a subset of one of these.
+//
+// This is the source of truth precisely because the rules don't reduce to a
+// clean per-profile "valid start" set: a 3g.20gb is memory-heavy (3 compute /
+// 4 memory slices), so it only fully packs the die when it sits on the right
+// (e.g. config 8 `2|2|3`) — a 3g on the left always strands a slice (configs
+// 5–7 end in grey). Validating against the enumerated configs captures that
+// exactly, and reproduces the off-axis 2g positions (configs 6, 18) too.
+type MigBlock = { start: number; size: number };
+export const MIG_CONFIGS: MigBlock[][] = [
+  [{ start: 0, size: 7 }], //                                                 1: 7
+  [{ start: 0, size: 4 }, { start: 4, size: 3 }], //                          2: 4|3
+  [{ start: 0, size: 4 }, { start: 4, size: 2 }, { start: 6, size: 1 }], //   3: 4|2|1
+  [{ start: 0, size: 4 }, { start: 4, size: 1 }, { start: 5, size: 1 }, { start: 6, size: 1 }], // 4
+  [{ start: 0, size: 3 }, { start: 3, size: 3 }], //                          5: 3|3 (slot 6 unused)
+  [{ start: 0, size: 3 }, { start: 3, size: 2 }, { start: 5, size: 1 }], //   6: 3|2|1 (slot 6)
+  [{ start: 0, size: 3 }, { start: 3, size: 1 }, { start: 4, size: 1 }, { start: 5, size: 1 }], // 7 (slot 6)
+  [{ start: 0, size: 2 }, { start: 2, size: 2 }, { start: 4, size: 3 }], //   8: 2|2|3
+  [{ start: 0, size: 2 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 3 }], // 9
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 2 }, { start: 4, size: 3 }], // 10
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 3 }], // 11
+  [{ start: 0, size: 2 }, { start: 2, size: 2 }, { start: 4, size: 2 }, { start: 6, size: 1 }], // 12
+  [{ start: 0, size: 2 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 2 }, { start: 6, size: 1 }], // 13
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 2 }, { start: 4, size: 2 }, { start: 6, size: 1 }], // 14
+  [{ start: 0, size: 2 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 1 }, { start: 5, size: 1 }, { start: 6, size: 1 }], // 15
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 2 }, { start: 4, size: 1 }, { start: 5, size: 1 }, { start: 6, size: 1 }], // 16
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 2 }, { start: 6, size: 1 }], // 17
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 1 }, { start: 5, size: 2 }], // 18
+  [{ start: 0, size: 1 }, { start: 1, size: 1 }, { start: 2, size: 1 }, { start: 3, size: 1 }, { start: 4, size: 1 }, { start: 5, size: 1 }, { start: 6, size: 1 }], // 19
+];
 
-// First legal, free placement for a profile (lowest start, like nvidia-smi's
-// default), honouring both the valid-start set and the occupied columns.
-export function findPlacement(s: LabState, profile: MigProfile): number[] | null {
-  const occupied = new Set<number>();
-  for (const inst of s.instances) inst.cols.forEach((c) => occupied.add(c));
-  for (const start of PLACEMENTS[profile.id] ?? []) {
-    const cols: number[] = [];
-    let ok = true;
-    for (let k = 0; k < profile.g; k++) {
-      const c = start + k;
-      if (c >= TOTAL_COMPUTE || occupied.has(c)) {
-        ok = false;
-        break;
-      }
-      cols.push(c);
-    }
-    if (ok) return cols;
-  }
-  return null;
-}
+const placedBlocks = (s: LabState): MigBlock[] => s.instances.map((i) => ({ start: Math.min(...i.cols), size: i.cols.length }));
+const configHasBlock = (cfg: MigBlock[], b: MigBlock) => cfg.some((cb) => cb.start === b.start && cb.size === b.size);
+const configMatches = (cfg: MigBlock[], blocks: MigBlock[]) => blocks.every((b) => configHasBlock(cfg, b));
 
 export interface PlaceResult {
   ok: boolean;
   reason?: string;
   cols?: number[];
 }
+
+// A profile fits iff some valid config (a) already contains every placed block
+// and (b) has a free block of the profile's size. We pick the lowest such block
+// (nvidia-smi's default lowest-placement behaviour). Order matters, so a
+// memory-heavy 3g added first can dead-end — exactly as real MIG does.
 export function canPlaceMig(s: LabState, profile: MigProfile): PlaceResult {
   if (usedMigMem(s) + profile.gb > TOTAL_MEM_GB)
     return { ok: false, reason: `Only ${TOTAL_MEM_GB - usedMigMem(s)} GB framebuffer free` };
-  const block = findPlacement(s, profile);
-  if (!block) {
-    if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
-      return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} compute slice(s) free` };
-    const starts = PLACEMENTS[profile.id] ?? [];
-    return { ok: false, reason: `No aligned placement free — ${profile.id} may start only at slot ${starts.join('/')}` };
+  const blocks = placedBlocks(s);
+  const occupied = new Set<number>();
+  for (const i of s.instances) i.cols.forEach((c) => occupied.add(c));
+  let best: number[] | null = null;
+  for (const cfg of MIG_CONFIGS) {
+    if (!configMatches(cfg, blocks)) continue;
+    for (const cb of cfg) {
+      if (cb.size !== profile.g) continue;
+      const cols = Array.from({ length: cb.size }, (_, k) => cb.start + k);
+      if (cols.some((c) => occupied.has(c))) continue;
+      if (!best || cb.start < best[0]) best = cols;
+    }
   }
-  return { ok: true, cols: block };
+  if (best) return { ok: true, cols: best };
+  if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
+    return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} compute slice(s) free` };
+  return { ok: false, reason: `No valid A100 MIG layout fits a ${profile.id} here — remove an instance or add it in a different order` };
+}
+
+// Can any profile still be added? (Used to decide when free slices are stranded.)
+export function canAddAnyMig(s: LabState): boolean {
+  return MIG_PROFILES.some((p) => canPlaceMig(s, p).ok);
 }
 
 export function canPlaceVgpu(s: LabState, profile: VgpuProfile): PlaceResult {
@@ -197,12 +220,11 @@ export function migMemStrip(s: LabState): (string | null)[] {
     const slices = Math.max(1, Math.round(inst.gb / 5));
     for (let k = 0; k < slices && idx < MEM_SLICES; k++) strip[idx++] = inst.color;
   }
-  // The A100 has 8 memory slices but only 7 compute slices. Once every compute
-  // slice is allocated, any still-free memory slice can't be paired with one,
-  // so it's stranded (unusable) — e.g. 7× 1g.5gb leaves the 8th slice's 5 GB
-  // unreachable. Larger profiles (3g.20gb, 7g.40gb…) claim the extra slice, so
-  // nothing is stranded then.
-  if (usedCompute(s) >= TOTAL_COMPUTE) {
+  // A free memory slice is stranded once nothing more can be placed on the GPU
+  // — e.g. 7× 1g.5gb leaves the 8th slice's 5 GB unreachable, and a left-3g
+  // layout (config 6) strands a slice too. If another instance can still be
+  // added, the free slices aren't stranded yet.
+  if (!canAddAnyMig(s)) {
     for (let j = 0; j < MEM_SLICES; j++) if (strip[j] == null) strip[j] = 'stranded';
   }
   return strip;

@@ -53,19 +53,21 @@ export const PRESETS: Preset[] = [
   },
   {
     name: 'Mixed profiles',
-    hint: '3g.20gb + 2g.10gb + two 1g.5gb, all running concurrently.',
+    hint: 'Two 1g.5gb + 2g.10gb + 3g.20gb — NVIDIA config 10, all concurrent.',
     accent: C.mig,
     build: () =>
+      // Config 10 (`1 | 1 | 2 | 3`): the memory-heavy 3g must sit on the right,
+      // so add the smaller instances first and the 3g last.
       build([
         { type: 'setMode', mode: 'mig' },
-        { type: 'addMig', profileId: '3g.20gb' },
+        { type: 'addMig', profileId: '1g.5gb' },
+        { type: 'addMig', profileId: '1g.5gb' },
         { type: 'addMig', profileId: '2g.10gb' },
-        { type: 'addMig', profileId: '1g.5gb' },
-        { type: 'addMig', profileId: '1g.5gb' },
-        { type: 'setMigWorkload', id: 'gi-0', kind: 'training' },
-        { type: 'setMigWorkload', id: 'gi-1', kind: 'render' },
-        { type: 'setMigWorkload', id: 'gi-2', kind: 'inference' },
-        { type: 'setMigWorkload', id: 'gi-3', kind: 'inference' },
+        { type: 'addMig', profileId: '3g.20gb' },
+        { type: 'setMigWorkload', id: 'gi-3', kind: 'training' },
+        { type: 'setMigWorkload', id: 'gi-2', kind: 'render' },
+        { type: 'setMigWorkload', id: 'gi-0', kind: 'inference' },
+        { type: 'setMigWorkload', id: 'gi-1', kind: 'inference' },
         { type: 'toggleRunning' },
       ]),
   },
@@ -92,10 +94,11 @@ export const PRESETS: Preset[] = [
     hint: 'One vGPU per MIG slice — hardware partitioning + VM isolation.',
     accent: C.vgpu,
     build: () =>
+      // Config 8 (`2 | 2 | 3`): smaller slices first, the 3g on the right.
       buildMigBacked([
-        { profile: '3g.20gb', vgpus: [{ workload: 'training' }] },
         { profile: '2g.10gb', vgpus: [{ workload: 'inference' }] },
         { profile: '2g.10gb', vgpus: [{ workload: 'render' }] },
+        { profile: '3g.20gb', vgpus: [{ workload: 'training' }] },
       ]),
   },
   {
@@ -103,9 +106,10 @@ export const PRESETS: Preset[] = [
     hint: 'MIG time-slicing — 3 vGPUs share one slice; another slice runs in parallel.',
     accent: C.vgpu,
     build: () =>
+      // Config 2 (`4 | 3`): the 4g on the left, the memory-heavy 3g on the right.
       buildMigBacked([
-        { profile: '3g.20gb', vgpus: [{ workload: 'training' }, { workload: 'training' }, { workload: 'inference' }] },
         { profile: '4g.20gb', vgpus: [{ workload: 'training' }] },
+        { profile: '3g.20gb', vgpus: [{ workload: 'training' }, { workload: 'training' }, { workload: 'inference' }] },
       ]),
   },
   {
@@ -113,9 +117,10 @@ export const PRESETS: Preset[] = [
     hint: 'A hung vGPU stalls its slice-mate, but the other slice runs on.',
     accent: C.red,
     build: () =>
+      // Config 2 (`4 | 3`): 4g first (left), 3g last (right).
       buildMigBacked([
-        { profile: '3g.20gb', vgpus: [{ workload: 'training' }, { workload: 'training', hung: true }] },
         { profile: '4g.20gb', vgpus: [{ workload: 'training' }] },
+        { profile: '3g.20gb', vgpus: [{ workload: 'training' }, { workload: 'training', hung: true }] },
       ]),
   },
   {

@@ -234,7 +234,7 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
           </div>
         ) : (
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>
-            Instances snap to real MIG <span style={{ color: accent }}>placements</span>: a 2g.10gb may start only at slot 0/2/4, a 3g.20gb at 0/4, a 4g/7g at 0 — so layouts can fragment. Add largest profiles first.
+            Only NVIDIA's <span style={{ color: accent }}>19 valid MIG layouts</span> are allowed. A profile greys out when no legal layout still fits it — order matters, so a memory-heavy 3g.20gb usually has to go <em>last</em>.
           </div>
         )}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
