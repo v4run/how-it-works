@@ -119,8 +119,8 @@ export function Die({
           <span />
         )}
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). On H100 SXM5: each 1g.10gb slice = 16 SMs, so a 7-way split reaches 7 × 16 = 112. The die has 132 SMs and a single 7g.80gb instance uses all 132 — the 20-SM gap only appears when you cut into 7 equal slices. (nvidia-smi mig -lgip.)">
-            {COLS} × {ROWS} SMs = {COLS * ROWS} of {TOTAL_SMS}
+          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="H100 SXM5: 7 GPC slices, 132 SMs. The grid is a uniform 16-SM/slice schematic, but real per-profile SM counts are non-uniform (1g.10gb=16, 1g.20gb=26, 2g.20gb=32, 3g.40gb=60, 4g.40gb=64, 7g.80gb=132) — a 7g.80gb uses all 132, while a 7-way 1g.10gb split reaches only 112. (nvidia-smi mig -lgip.)">
+            {COLS} GPC slices · {TOTAL_SMS} SMs
           </span>
         ) : null}
       </div>
