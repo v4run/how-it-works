@@ -206,7 +206,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
   const dividers = clamp((lt - 2.5) / 2.0, 0, 1);
   const memAssign = clamp((lt - 9) / 3.5, 0, 1);
   // Seven 1g.5gb slices each take one memory slice (7 of 8); the 8th has no
-  // compute slice left to pair with, so it's stranded — not reserved.
+  // GPC slice left to pair with, so it's stranded — not reserved.
   const memGroups = lt > 9
     ? Array.from({ length: 8 }, (_, i) => {
         if (i === 7) return 'stranded';
@@ -236,7 +236,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
           opacity: clamp((lt - 15) / 0.8, 0, 1),
         }}
       >
-        <Chip accent={C.mig}>7 compute slices</Chip>
+        <Chip accent={C.mig}>7 GPC slices</Chip>
         <Chip accent={C.mig}>8 memory slices · 1 stranded</Chip>
         <Chip accent={C.mig}>hard-wired in hardware</Chip>
       </div>
@@ -249,7 +249,7 @@ function S3_MigSlice({ lt }: { lt: number }) {
         body={
           lt > 9
             ? 'Each GPU Instance gets dedicated SMs, its own L2 slices and its own memory controllers. The crossbar paths are partitioned too — these are real, electrically-isolated boundaries, not software quotas.'
-            : 'On an A100, the silicon divides into 7 compute slices and 8 memory slices — fixed partitions etched across the GPCs and memory system.'
+            : 'On an A100, the silicon divides into 7 GPC slices and 8 memory slices — fixed partitions etched across the GPCs and memory system.'
         }
       />
     </div>
@@ -268,7 +268,7 @@ function S4_Profiles({ lt }: { lt: number }) {
     .filter((g) => lt > 5 + g.t)
     .map((g) => ({ cols: g.cols, label: g.label, color: C.mig, o: clamp((lt - 5 - g.t) / 0.5, 0, 1) }));
   // 3g.20gb (4 slices) + 2g.10gb (2) + 1g.5gb (1) + 1g.5gb (1) = all 8 memory
-  // slices, 7 compute slices — the full 40 GB is claimed, nothing stranded.
+  // slices, 7 GPC slices — the full 40 GB is claimed, nothing stranded.
   const memGroups = lt > 5 ? Array.from({ length: 8 }, (_, i) => (lt > 5.4 + i * 0.2 ? C.mig : null)) : null;
 
   const profiles = ['1g.5gb', '1g.10gb', '2g.10gb', '3g.20gb', '4g.20gb', '7g.40gb'];
@@ -311,7 +311,7 @@ function S4_Profiles({ lt }: { lt: number }) {
           })}
         </div>
         <div style={{ fontFamily: MONO, fontSize: 16, color: C.dim, marginTop: 20, lineHeight: 1.5, opacity: clamp((lt - 4) / 0.8, 0, 1) }}>
-          <span style={{ color: C.mig }}>g</span> = compute slices (of 7) · <span style={{ color: C.mig }}>gb</span> = framebuffer.
+          <span style={{ color: C.mig }}>g</span> = GPC slices (of 7) · <span style={{ color: C.mig }}>gb</span> = framebuffer.
           <br />
           GPU Instance → <span style={{ color: C.mig }}>Compute Instances</span> subdivide SMs while sharing the instance's memory.
         </div>

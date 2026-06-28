@@ -226,7 +226,7 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
   return (
     <>
       <Section title={backed ? 'Build · MIG-backed vGPUs' : 'Build · MIG GPU instances'} accent={accent}>
-        <BudgetBar label="Compute slices" used={usedCompute(state)} total={TOTAL_COMPUTE} unit="g" accent={C.mig} />
+        <BudgetBar label="GPC slices" used={usedCompute(state)} total={TOTAL_COMPUTE} unit="g" accent={C.mig} />
         <BudgetBar label="Framebuffer" used={usedMigMem(state)} total={TOTAL_MEM_GB} unit="GB" accent={C.mig} />
         {backed ? (
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>

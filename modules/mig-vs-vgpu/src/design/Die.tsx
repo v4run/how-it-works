@@ -1,13 +1,13 @@
 // The shared GPU-die visual — ported from the prototype.
-// 7 compute-slice columns × 14 SMs each = 98 SMs (one rectangle = one SM).
-// That's the A100's MIG-addressable SM count: 14 SMs per compute slice, 7
+// 7 GPC-slice columns × 14 SMs each = 98 SMs (one rectangle = one SM).
+// That's the A100's MIG-addressable SM count: 14 SMs per GPC slice, 7
 // slices. The full A100 has 108 SMs; the remaining 10 aren't exposed to MIG.
 // Plus an L2 band and 8 memory slices.
 import { C, MONO, hexToRgb } from './theme';
 import { clamp } from '../engine/anim';
 
-export const COLS = 7; // compute slices (max MIG instances)
-export const ROWS = 14; // SMs per compute slice → 7 × 14 = 98 SMs drawn
+export const COLS = 7; // GPC slices (max MIG instances)
+export const ROWS = 14; // SMs per GPC slice → 7 × 14 = 98 SMs drawn
 export const TOTAL_SMS = 108; // SMs on the A100 die (98 in MIG slices + 10 reserved)
 export const MEM = 8;
 
@@ -108,7 +108,7 @@ export function Die({
         {!hideHeader ? (
           <span
             style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint, cursor: 'help' }}
-            title="Logical partition map, not the physical die floorplan. Columns are MIG compute slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2 stacks with controllers on the die edges)."
+            title="Logical partition map, not the physical die floorplan. Columns are MIG GPC slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2 stacks with controllers on the die edges)."
           >
             {label}
           </span>
@@ -116,7 +116,7 @@ export function Die({
           <span />
         )}
         {!hideHeader ? (
-          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 14 SMs per compute slice × 7 slices = 98; the A100 die has 108 SMs (10 reserved, not MIG-addressable).">
+          <span style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.1em', color: accent, opacity: 0.8 }} title="One cell = one SM (streaming multiprocessor). 14 SMs per GPC slice × 7 slices = 98; the A100 die has 108 SMs (10 reserved, not MIG-addressable).">
             {COLS} × {ROWS} SMs = {COLS * ROWS} of {TOTAL_SMS}
           </span>
         ) : null}
@@ -136,7 +136,7 @@ export function Die({
                 return (
                   <div
                     key={ri}
-                    title={`SM ${ci * ROWS + ri + 1} · compute slice ${ci + 1}`}
+                    title={`SM ${ci * ROWS + ri + 1} · GPC slice ${ci + 1}`}
                     style={{
                       flex: 1,
                       borderRadius: 3,
@@ -308,7 +308,7 @@ export function Die({
               key={mi}
               title={
                 stranded
-                  ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 compute slices, so this 5 GB slice has no compute slice to pair with and is unusable.'
+                  ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 GPC slices, so this 5 GB slice has no GPC slice to pair with and is unusable.'
                   : 'MIG memory slice — 5 GB, HBM2-backed (not a physical FBP).'
               }
               style={{

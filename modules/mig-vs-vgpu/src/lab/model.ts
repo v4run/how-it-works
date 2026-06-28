@@ -1,8 +1,8 @@
 // GPU simulation domain model for the interactive lab.
-// Models an A100-40GB: 7 compute slices (GPC/SM columns) + 8 memory slices (HBM2).
+// Models an A100-40GB: 7 GPC slices (SM columns) + 8 memory slices (HBM2).
 //
 // Three partitioning modes:
-//   - MIG        : spatial — GPU Instances own dedicated, contiguous compute
+//   - MIG        : spatial — GPU Instances own dedicated, contiguous GPC
 //                  slices. Instances run concurrently; a fault is contained.
 //   - vGPU       : temporal — VMs share the whole SM array via a time-slice
 //                  scheduler. Memory is statically carved; a hung context can
@@ -196,7 +196,7 @@ export function canPlaceMig(s: LabState, profile: MigProfile): PlaceResult {
   }
   if (best) return { ok: true, cols: best };
   if (usedCompute(s) + profile.g > TOTAL_COMPUTE)
-    return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} compute slice(s) free` };
+    return { ok: false, reason: `Only ${TOTAL_COMPUTE - usedCompute(s)} GPC slice(s) free` };
   return { ok: false, reason: `No valid A100 MIG layout fits a ${profile.id} here — remove an instance or add it in a different order` };
 }
 
