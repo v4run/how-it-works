@@ -2,7 +2,7 @@
 // and scheduler state, plus the time-slice wheel in vGPU mode.
 import { C, MONO, DISP, hexToRgb } from '../design/theme';
 import { Die, DieGroup } from '../design/Die';
-import { LabState, migMemStrip, vgpuMemStrip } from './model';
+import { LabState, migMemStrip, vgpuMemStrip, smOf } from './model';
 import { SimSnapshot } from './useSimulation';
 import { SchedulerWheel, WheelSlice } from './SchedulerWheel';
 
@@ -54,6 +54,7 @@ function MigViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
         label: `GI-${idx}`,
         color: inst.faulted ? C.red : inst.color,
         fault: inst.faulted,
+        badge: inst.faulted ? undefined : `${smOf(inst.profileId)} SMs`,
       });
       return;
     }
