@@ -277,21 +277,68 @@ export function Die({
           ))}
       </div>
 
-      {/* L2 band */}
+      {/* L2 cache + crossbar band. In MIG mode the crossbar is carved per
+          instance — each instance's GPC slices reach only its own memory
+          slices (hardware isolation). Without partitions it's all-to-all. */}
       <div
+        title={
+          groups && groups.length
+            ? 'Crossbar partitioned: each GPU instance gets dedicated crossbar lanes, so its GPC slices reach only its own L2 + memory slices. No path crosses between instances — this is where MIG’s spatial isolation is enforced.'
+            : 'L2 cache + crossbar: the all-to-all fabric connecting every GPC/SM to every memory slice. MIG partitions it per instance; vGPU time-shares the whole thing.'
+        }
         style={{
+          position: 'relative',
           marginTop: 16,
           height: 26,
           borderRadius: 6,
-          background: `repeating-linear-gradient(90deg, rgba(${hexToRgb(accent)},0.16) 0 26px, rgba(${hexToRgb(accent)},0.07) 26px 32px)`,
-          border: `1px solid rgba(${hexToRgb(accent)},0.22)`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          background: `repeating-linear-gradient(90deg, rgba(${hexToRgb(accent)},0.12) 0 26px, rgba(${hexToRgb(accent)},0.05) 26px 32px)`,
+          border: `1px solid rgba(${hexToRgb(accent)},0.18)`,
+          overflow: 'hidden',
           opacity: clamp(reveal * 1.4 - 0.2, 0, 1),
         }}
       >
-        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.34em', color: C.faint }}>L2 CACHE · CROSSBAR</span>
+        {/* partitioned crossbar lanes, aligned with each instance's GPC columns */}
+        {groups &&
+          groups.map((g, gi) => {
+            const c0 = Math.min(...g.cols);
+            const c1 = Math.max(...g.cols);
+            const left = c0 * (colW + colGap);
+            const width = (c1 - c0 + 1) * colW + (c1 - c0) * colGap;
+            const col = g.fault ? C.red : g.color || accent;
+            return (
+              <div
+                key={gi}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left,
+                  width,
+                  background: `rgba(${hexToRgb(col)},0.22)`,
+                  borderLeft: `2px solid rgba(${hexToRgb(col)},0.75)`,
+                  borderRight: `2px solid rgba(${hexToRgb(col)},0.75)`,
+                  boxShadow: `inset 0 0 14px rgba(${hexToRgb(col)},0.28)`,
+                }}
+              />
+            );
+          })}
+        <span
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: MONO,
+            fontSize: 12,
+            letterSpacing: '0.34em',
+            color: C.faint,
+            textShadow: '0 0 6px rgba(0,0,0,0.7)',
+          }}
+        >
+          {groups && groups.length ? 'L2 · CROSSBAR — PARTITIONED' : 'L2 CACHE · CROSSBAR'}
+        </span>
       </div>
 
       {/* memory strip — 8 MIG memory slices (10 GB each, HBM3-backed) */}
