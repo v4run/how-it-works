@@ -149,7 +149,7 @@ function S1_Anatomy({ lt }: { lt: number }) {
         </div>
         <Annotation x={745} y={300} dx={-150} dy={-40} title="GPCs → SMs" sub="compute · streaming multiprocessors" lt={lt} delay={4.5} />
         <Annotation x={1175} y={470} dx={150} dy={-10} title="L2 cache + crossbar" sub="shared on-chip bandwidth" lt={lt} delay={6.0} />
-        <Annotation x={1175} y={628} dx={150} dy={20} title="Memory controllers" sub="8 slices → HBM2e stacks" lt={lt} delay={7.5} />
+        <Annotation x={1175} y={628} dx={150} dy={20} title="Memory controllers" sub="8 slices → HBM2 stacks" lt={lt} delay={7.5} />
       </CamRig>
 
       <Caption

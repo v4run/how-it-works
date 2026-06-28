@@ -108,7 +108,7 @@ export function Die({
         {!hideHeader ? (
           <span
             style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.18em', color: C.faint, cursor: 'help' }}
-            title="Logical partition map, not the physical die floorplan. Columns are MIG compute slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2e stacks with controllers on the die edges)."
+            title="Logical partition map, not the physical die floorplan. Columns are MIG compute slices (the real GA100 has 8 GPCs in two rows around a central, split L2); the bottom strip is MIG's 8 memory slices, not physical FBPs/HBM stacks (the A100 has 5 active HBM2 stacks with controllers on the die edges)."
           >
             {label}
           </span>
@@ -291,7 +291,7 @@ export function Die({
         <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.34em', color: C.faint }}>L2 CACHE · CROSSBAR</span>
       </div>
 
-      {/* memory strip — 8 MIG memory slices (5 GB each, HBM2e-backed) */}
+      {/* memory strip — 8 MIG memory slices (5 GB each, HBM2-backed) */}
       <div style={{ marginTop: 12, display: 'flex', gap: 6, height: 40 }}>
         {Array.from({ length: MEM }).map((_, mi) => {
           const tint = memGroups && memGroups !== 'mig' ? memGroups[mi] : null;
@@ -309,7 +309,7 @@ export function Die({
               title={
                 stranded
                   ? 'Stranded memory slice: the A100 has 8 memory slices but only 7 compute slices, so this 5 GB slice has no compute slice to pair with and is unusable.'
-                  : 'MIG memory slice — 5 GB, HBM2e-backed (not a physical FBP).'
+                  : 'MIG memory slice — 5 GB, HBM2-backed (not a physical FBP).'
               }
               style={{
                 flex: 1,
@@ -347,7 +347,7 @@ export function Die({
           opacity: clamp((reveal - 0.5) / 0.4, 0, 1),
         }}
       >
-        {MEM} × 5 GB MEMORY SLICE · HBM2e
+        {MEM} × 5 GB MEMORY SLICE · HBM2
       </div>
     </div>
   );

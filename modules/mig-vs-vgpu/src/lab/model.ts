@@ -1,5 +1,5 @@
 // GPU simulation domain model for the interactive lab.
-// Models an A100-40GB: 7 compute slices (GPC/SM columns) + 8 memory slices (HBM2e).
+// Models an A100-40GB: 7 compute slices (GPC/SM columns) + 8 memory slices (HBM2).
 //
 // Three partitioning modes:
 //   - MIG        : spatial — GPU Instances own dedicated, contiguous compute
