@@ -27,7 +27,7 @@ const spineCx = (j: number) => W / 2 + (j - (SPINES - 1) / 2) * 300;
 const SY_TOP = 44, SY_H = 56, SYC = SY_TOP + SY_H / 2;
 const LY_TOP = 230, LY_H = 64, LYC = LY_TOP + LY_H / 2;
 const SPINE_W = 168, LEAF_W = 178;
-const HOST_TOP = 356, HOST_H = 40, HOST_GAP = 48, HOST_W = 158;
+const HOST_TOP = 356, HOST_H = 52, HOST_GAP = 62, HOST_W = 168;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -188,12 +188,13 @@ export function LabViz({ state, snap }: { state: LabState; snap: SimSnapshot }) 
                   stroke={isSrc || isDst ? col : `rgba(${hexToRgb(col)},0.5)`}
                   strokeWidth={isSrc || isDst ? 2 : 1.2}
                 />
-                <circle cx={cx - HOST_W / 2 + 14} cy={cy} r={4} fill={col} />
-                <text x={cx - HOST_W / 2 + 26} y={cy - 1} fontFamily={DISP} fontWeight={600} fontSize={13} fill={C.ink}>{h.name}</text>
-                <text x={cx - HOST_W / 2 + 26} y={cy + 12} fontFamily={MONO} fontSize={9.5} fill={C.dim}>{h.ip}</text>
-                <text x={cx + HOST_W / 2 - 10} y={cy - 1} textAnchor="end" fontFamily={MONO} fontSize={9.5} fill={col}>VNI {seg?.vni}</text>
+                <circle cx={cx - HOST_W / 2 + 14} cy={cy - 14} r={4} fill={col} />
+                <text x={cx - HOST_W / 2 + 26} y={cy - 10} fontFamily={DISP} fontWeight={600} fontSize={13} fill={C.ink}>{h.name}</text>
+                <text x={cx - HOST_W / 2 + 26} y={cy + 4} fontFamily={MONO} fontSize={9.5} fill={col}>mac {shortMac(h.mac)}</text>
+                <text x={cx - HOST_W / 2 + 26} y={cy + 16} fontFamily={MONO} fontSize={9.5} fill={C.dim}>{h.ip}</text>
+                <text x={cx + HOST_W / 2 - 10} y={cy - 10} textAnchor="end" fontFamily={MONO} fontSize={9.5} fill={col}>VNI {seg?.vni}</text>
                 {(isSrc || isDst) && (
-                  <text x={cx + HOST_W / 2 - 10} y={cy + 12} textAnchor="end" fontFamily={MONO} fontSize={9.5} fill={col}>{isSrc ? 'SRC' : 'DST'}</text>
+                  <text x={cx + HOST_W / 2 - 10} y={cy + 16} textAnchor="end" fontFamily={MONO} fontSize={10} fontWeight={600} fill={col}>{isSrc ? 'SRC' : 'DST'}</text>
                 )}
               </g>
             );

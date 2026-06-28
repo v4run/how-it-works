@@ -9,6 +9,7 @@ import {
   LEAVES,
   leafName,
   segmentById,
+  shortMac,
   MAX_HOSTS,
   MAX_SEGMENTS,
 } from './model';
@@ -98,7 +99,8 @@ export function LabControls({
             return (
               <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 9px', borderRadius: 9, border: `1px solid ${C.line}` }}>
                 <span style={{ width: 8, height: 8, borderRadius: 8, background: seg?.color ?? C.dim, flexShrink: 0 }} />
-                <span style={{ fontFamily: DISP, fontSize: 13.5, fontWeight: 600, color: C.ink, width: 34 }}>{h.name}</span>
+                <span style={{ fontFamily: DISP, fontSize: 13.5, fontWeight: 600, color: C.ink, width: 34, flexShrink: 0 }}>{h.name}</span>
+                <span style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint, width: 42, flexShrink: 0 }} title={h.mac}>{shortMac(h.mac)}</span>
                 <Mini value={String(h.leafIdx)} onChange={(v) => dispatch({ type: 'moveHost', id: h.id, leafIdx: +v })} options={Array.from({ length: LEAVES }, (_, i) => ({ v: String(i), label: leafName(i) }))} />
                 <Mini value={h.segmentId} onChange={(v) => dispatch({ type: 'setHostSegment', id: h.id, segmentId: v })} options={state.segments.map((s) => ({ v: s.id, label: `VNI ${s.vni}` }))} />
                 <button onClick={() => dispatch({ type: 'removeHost', id: h.id })} title="Remove host" style={{ ...xStyle, marginLeft: 'auto' }}>×</button>
@@ -187,7 +189,7 @@ function HostSelect({
           const seg = segmentById(state, h.segmentId);
           return (
             <option key={h.id} value={h.id} disabled={h.id === exclude}>
-              {h.name} · VNI {seg?.vni} · {leafName(h.leafIdx)}
+              {h.name} · {shortMac(h.mac)} · VNI {seg?.vni} · {leafName(h.leafIdx)}
             </option>
           );
         })}
