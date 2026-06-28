@@ -304,7 +304,7 @@ function HeaderStack({ flow }: { flow: SimSnapshot['flow'] }) {
           })}
           {!intra && flow?.plan.outcome === 'delivered' && (
             <div style={{ fontFamily: MONO, fontSize: 11, color: flow.plan.fragWarn ? C.amber : C.faint, marginTop: 2 }}>
-              {flow.plan.fragWarn ? '⚠ +50 B overhead exceeds MTU 1500 → fragmentation' : '+50 B overlay overhead · fits jumbo MTU'}
+              {flow.plan.fragWarn ? '⚠ 1550 B > underlay MTU 1500 → fragment, or dropped (outer DF bit)' : '+50 B overlay overhead · fits jumbo underlay MTU'}
             </div>
           )}
         </div>

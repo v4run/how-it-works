@@ -275,7 +275,7 @@ export function planFlow(s: LabState, learnedKeys: Set<string>): FlowPlan | null
     steps.push({ key: 'encap', title: 'Encapsulate (MAC-in-UDP)', detail: `${leafName(ingressLeaf)} wraps the frame: VXLAN(VNI ${seg.vni}) / UDP 4789 / IP ${leafLoopback(ingressLeaf)}→${leafLoopback(egressLeaf)}. +50 bytes.`, kind: 'info' });
     fragWarn = !s.jumbo;
     if (fragWarn) {
-      steps.push({ key: 'mtu', title: 'MTU too small', detail: 'Fabric MTU is 1500. A full 1500-byte frame + 50 B overlay = 1550 B → fragmentation. Raise the fabric to jumbo (9000).', kind: 'warn' });
+      steps.push({ key: 'mtu', title: 'MTU too small', detail: 'Underlay (L3) MTU is 1500. A full 1500-byte inner frame + 50 B overlay = 1550 B > 1500 → the encapsulated packet must fragment into multiple IP packets, or — since VTEPs usually set the outer DF bit — is silently dropped. Raise the underlay to jumbo (9000).', kind: 'warn' });
     }
     steps.push({ key: 'ecmp', title: 'Underlay routing (ECMP)', detail: `Spine routes it as ordinary IP toward ${leafLoopback(egressLeaf)}, hashing the UDP source port to spread load. Spines never see the VNI.`, kind: 'info' });
     steps.push({ key: 'decap', title: 'Decapsulate', detail: `${leafName(egressLeaf)} strips the outer headers, reads VNI ${seg.vni}, and recovers the original frame.`, kind: 'info' });

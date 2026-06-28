@@ -63,7 +63,7 @@ export function LabControls({
             label="ARP suppression"
             sub={state.ctrlPlane === 'evpn' ? 'leaf proxies ARP from EVPN cache' : 'requires BGP EVPN'}
           />
-          <Toggle on={state.jumbo} onChange={(v) => dispatch({ type: 'setJumbo', on: v })} accent={state.jumbo ? C.green : C.amber} label="Jumbo MTU (9000)" sub="headroom for the +50 B overlay" />
+          <Toggle on={state.jumbo} onChange={(v) => dispatch({ type: 'setJumbo', on: v })} accent={state.jumbo ? C.green : C.amber} label="Jumbo MTU (9000)" sub="underlay (L3) MTU · headroom for +50 B overlay" />
         </div>
       </Section>
 

@@ -68,7 +68,7 @@ export const PRESETS: Preset[] = [
   {
     id: 'mtu',
     name: 'MTU / fragmentation',
-    blurb: 'Fabric MTU at 1500 — the +50 B of overlay overhead overflows it. Flip to jumbo to fix it.',
+    blurb: 'Underlay MTU at 1500 — the +50 B of overlay overhead overflows it, so packets fragment or (with the DF bit) drop. Flip to jumbo to fix it.',
     make: () => build({ segments: 1, hosts: [{ leaf: 0, seg: 0 }, { leaf: 3, seg: 0 }], ctrlPlane: 'evpn', arpSuppression: true, jumbo: false, src: 0, dst: 1 }),
   },
   {
