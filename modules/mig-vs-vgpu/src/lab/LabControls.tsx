@@ -398,7 +398,7 @@ function VgpuBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Dis
         <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginBottom: 10, lineHeight: 1.5 }}>
           {state.scheduler === 'best-effort' && 'Idle VMs are skipped — busy tenants split time. Highest throughput, least predictable.'}
           {state.scheduler === 'equal-share' && 'The GPU is split equally among the running VMs (1/N). Add or remove a VM and every share grows or shrinks.'}
-          {state.scheduler === 'fixed-share' && 'Each VM gets a fixed 1/max-vGPUs slice, no matter how many run — so a half-full GPU leaves slots idle (grey on the wheel). Consistent per-VM, but wastes capacity.'}
+          {state.scheduler === 'fixed-share' && 'Each VM gets a fixed slice = framebuffer / GPU memory (1/max for its type) — a 40C gets ½, a 20C ¼ — no matter how many run. Any leftover capacity sits idle (grey on the wheel). Consistent per-VM, but can waste the GPU.'}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontFamily: MONO, fontSize: 12, color: C.dim }}>Quantum</span>

@@ -2,7 +2,7 @@
 // and scheduler state, plus the time-slice wheel in vGPU mode.
 import { C, MONO, DISP, hexToRgb } from '../design/theme';
 import { Die, DieGroup } from '../design/Die';
-import { LabState, migMemStrip, vgpuMemStrip, smOf, fixedShareSlots } from './model';
+import { LabState, migMemStrip, vgpuMemStrip, smOf, fixedShareWedges } from './model';
 import { SimSnapshot } from './useSimulation';
 import { SchedulerWheel, WheelSlice } from './SchedulerWheel';
 
@@ -128,22 +128,25 @@ function VgpuViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
   const stalled = snap.stalledByHang;
   const activeColor = activeVm ? activeVm.color : C.vgpu;
 
-  // One equal wedge per VM. Under fixed-share the GPU reserves 1/maxVgpus per
-  // vGPU, so any unused slots are drawn as idle (reserved-but-wasted) wedges.
-  const slices: WheelSlice[] = state.vms.map((v) => ({
-    id: v.id,
-    name: v.name,
-    color: v.color,
-    weight: 1,
-    active: v.id === snap.activeId,
-    hung: v.hung,
-    idle: false,
-  }));
+  // Equal-share / best-effort: one equal wedge per VM. Fixed-share: each VM's
+  // wedge is sized by its framebuffer share (40C = 1/2, 20C = 1/4 …) plus one
+  // grey idle wedge for any reserved-but-unused capacity.
+  let slices: WheelSlice[];
   if (state.scheduler === 'fixed-share') {
-    const idleCount = fixedShareSlots(state.vms) - state.vms.length;
-    for (let k = 0; k < idleCount; k++) {
-      slices.push({ id: `idle-${k}`, name: 'idle', color: '#5f6a60', weight: 1, active: `idle-${k}` === snap.activeId, hung: false, idle: true });
-    }
+    slices = fixedShareWedges(state.vms).map((w) => {
+      const vm = state.vms.find((v) => v.id === w.id);
+      return {
+        id: w.id,
+        name: w.idle ? 'idle' : vm?.name ?? '',
+        color: w.idle ? '#5f6a60' : vm?.color ?? C.vgpu,
+        weight: w.frac,
+        active: w.id === snap.activeId,
+        hung: vm?.hung ?? false,
+        idle: w.idle,
+      };
+    });
+  } else {
+    slices = state.vms.map((v) => ({ id: v.id, name: v.name, color: v.color, weight: 1, active: v.id === snap.activeId, hung: v.hung, idle: false }));
   }
 
   return (

@@ -10,7 +10,7 @@
 //                hung vGPU stalls only its slice-mates — never another slice.
 
 import React from 'react';
-import { LabState, TOTAL_COMPUTE, fixedShareSlots } from './model';
+import { LabState, TOTAL_COMPUTE, fixedShareWedges } from './model';
 
 export interface UnitMetric {
   id: string;
@@ -53,14 +53,8 @@ function buildOrder(s: LabState): string[] {
     return s.vms.filter((v) => v.workload.demand > 0 || v.hung).map((v) => v.id);
   }
   if (s.scheduler === 'fixed-share') {
-    // Each vGPU gets a fixed 1/maxVgpus slice; the leftover slots stay idle
-    // (the GPU reserves them even though no VM is there). Idle slots get unique
-    // ids so the wheel can highlight the one currently on the GPU.
-    if (s.vms.length === 0) return [];
-    const order = s.vms.map((v) => v.id);
-    const slots = fixedShareSlots(s.vms);
-    for (let k = 0; order.length < slots; k++) order.push(`idle-${k}`);
-    return order;
+    // One slot per vGPU (sized by framebuffer) + one idle slot for any leftover.
+    return fixedShareWedges(s.vms).map((w) => w.id);
   }
   // equal-share: the GPU is split equally among the running vGPUs.
   return s.vms.map((v) => v.id);
@@ -198,15 +192,28 @@ export function useSimulation(state: LabState): SimSnapshot {
         if (order.length > 0) {
           activeId = order[a.slotPos % order.length];
           const activeVm = s.vms.find((v) => v.id === activeId);
-          if (!activeVm) {
-            // Idle slot (fixed-share, underpopulated): GPU reserved but unused —
-            // no VM runs, time still passes so each VM's share stays 1/maxVgpus.
-            a.quantumElapsed += dt;
-            quantumFrac = Math.min(1, a.quantumElapsed / quantumSec);
-            if (a.quantumElapsed >= quantumSec) {
+          // Fixed-share gives each vGPU a slot duration proportional to its
+          // framebuffer share, so a 40C runs twice as long as a 20C (and the
+          // wheel hand sweeps its bigger wedge once). Other policies: equal.
+          let target = quantumSec;
+          if (s.scheduler === 'fixed-share') {
+            const wedges = fixedShareWedges(s.vms);
+            const minFrac = Math.min(...wedges.map((w) => w.frac));
+            const cur = wedges.find((w) => w.id === activeId);
+            target = quantumSec * (cur && minFrac > 0 ? cur.frac / minFrac : 1);
+          }
+          const advance = () => {
+            if (a.quantumElapsed >= target) {
               a.slotPos = (a.slotPos + 1) % order.length;
               a.quantumElapsed = 0;
             }
+          };
+          if (!activeVm) {
+            // Idle slot: GPU reserved but unused — no VM runs, time still passes
+            // so each running vGPU's share stays at its fixed fraction.
+            a.quantumElapsed += dt;
+            quantumFrac = Math.min(1, a.quantumElapsed / target);
+            advance();
           } else if (activeVm.hung) {
             stalledByHang = true;
             a.activeTime[activeId] += dt;
@@ -217,11 +224,8 @@ export function useSimulation(state: LabState): SimSnapshot {
             if (demand > 0) a.work[activeId] += TOTAL_COMPUTE * demand * dt;
             a.activeTime[activeId] += dt;
             a.quantumElapsed += dt;
-            quantumFrac = Math.min(1, a.quantumElapsed / quantumSec);
-            if (a.quantumElapsed >= quantumSec) {
-              a.slotPos = (a.slotPos + 1) % order.length;
-              a.quantumElapsed = 0;
-            }
+            quantumFrac = Math.min(1, a.quantumElapsed / target);
+            advance();
           }
         }
       }

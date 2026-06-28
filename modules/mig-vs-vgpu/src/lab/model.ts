@@ -132,14 +132,21 @@ export function usedVgpuMem(s: LabState): number {
   return s.vms.reduce((a, v) => a + v.fb, 0);
 }
 
-// Fixed-share scheduler: every vGPU gets an equal slice of 1/maxVgpus, where
-// maxVgpus is how many of this vGPU type the GPU supports (framebuffer-limited),
-// regardless of how many are actually running. Returns that slot count, so the
-// unused slots can be drawn as reserved-but-idle.
-export function fixedShareSlots(vms: VM[]): number {
-  if (vms.length === 0) return 0;
-  const maxFb = Math.max(...vms.map((v) => v.fb));
-  return Math.max(vms.length, Math.floor(TOTAL_MEM_GB / maxFb));
+// Fixed-share scheduler: every vGPU gets a fixed slice = 1/(max for its type) =
+// its framebuffer / GPU memory, regardless of how many run. So a 40C gets 1/2,
+// a 20C 1/4, etc. — proportional to framebuffer, and heterogeneous-aware. Any
+// leftover capacity (GPU not full) becomes a single reserved-but-idle wedge.
+export interface FixedShareWedge {
+  id: string;
+  frac: number;
+  idle: boolean;
+}
+export function fixedShareWedges(vms: VM[]): FixedShareWedge[] {
+  if (vms.length === 0) return [];
+  const wedges: FixedShareWedge[] = vms.map((v) => ({ id: v.id, frac: v.fb / TOTAL_MEM_GB, idle: false }));
+  const leftover = TOTAL_MEM_GB - vms.reduce((a, v) => a + v.fb, 0);
+  if (leftover > 0.001) wedges.push({ id: 'idle-0', frac: leftover / TOTAL_MEM_GB, idle: true });
+  return wedges;
 }
 export function totalSliceVgpus(s: LabState): number {
   return s.instances.reduce((a, i) => a + i.vgpus.length, 0);
