@@ -56,9 +56,12 @@ Model is an **H100 SXM5 80GB**: 7 GPC slices, 132 SMs, 8 × 10 GB memory slices
   shown live.
 
 ### MIG-backed · both
-- A third mode combining the two. Each MIG slice backs **1–3 time-sliced vGPUs**
-  (NVIDIA "MIG time-slicing" — check real hardware with `nvidia-smi -q` →
-  "MIG Time-Slicing: Supported"). Add slices, then add vGPUs onto each slice.
+- A third mode combining the two. Each MIG slice backs **time-sliced vGPUs**,
+  the count being **framebuffer-derived** — slice memory ÷ 10 GB (so a `1g.10gb`
+  holds 1, a `7g.80gb` holds 8). (NVIDIA "MIG time-slicing" — check real hardware
+  with `nvidia-smi -q` → "MIG Time-Slicing: Supported". NVIDIA's documented
+  example is the RTX PRO 6000 Blackwell at 3/slice = 24 GB ÷ 8 GB.) Add slices,
+  then add vGPUs onto each slice.
 - Across slices: workloads run **in parallel and hardware-isolated**. Within a
   slice with multiple vGPUs: they **time-slice that slice's compute** (each slice
   runs its own independent scheduler).

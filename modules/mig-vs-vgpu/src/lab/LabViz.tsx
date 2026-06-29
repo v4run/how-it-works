@@ -116,7 +116,7 @@ function MigViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
         )
       ) : (
         <div style={{ fontFamily: MONO, fontSize: 15, color: C.faint }}>
-          {backed ? 'No slices yet — add a MIG slice; each can host 1–3 time-sliced vGPUs.' : 'Unpartitioned GPU — add a MIG instance to carve the silicon.'}
+          {backed ? 'No slices yet — add a MIG slice; each hosts one time-sliced vGPU per 10 GB of its framebuffer.' : 'Unpartitioned GPU — add a MIG instance to carve the silicon.'}
         </div>
       )}
     </div>

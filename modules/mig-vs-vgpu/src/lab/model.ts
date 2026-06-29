@@ -18,7 +18,12 @@ export const TOTAL_COMPUTE = 7;
 export const TOTAL_MEM_GB = 80;
 export const MEM_SLICES = 8;
 export const MEM_PER_SLICE_GB = TOTAL_MEM_GB / MEM_SLICES; // 10 GB on H100 80GB
-export const MAX_VGPU_PER_SLICE = 3;
+
+// MIG time-slicing: how many time-sliced vGPUs a MIG slice can host. NVIDIA's
+// number is framebuffer-derived — slice memory / per-vGPU framebuffer (e.g. a
+// 24 GB Blackwell slice / 8 GB = 3). Here each vGPU gets at least one 10 GB
+// memory slice, so a 1g.10gb slice holds 1, a 2g.20gb 2, a 7g.80gb 8.
+export const maxVgpusPerSlice = (gb: number): number => Math.max(1, Math.floor(gb / MEM_PER_SLICE_GB));
 
 export type Mode = 'mig' | 'vgpu' | 'mig-vgpu';
 export type SchedPolicy = 'best-effort' | 'equal-share' | 'fixed-share';
@@ -369,7 +374,7 @@ export function reducer(s: LabState, a: Action): LabState {
     case 'addSliceVgpu': {
       let seq = s.seq;
       const instances = s.instances.map((i) => {
-        if (i.id !== a.instId || i.vgpus.length >= MAX_VGPU_PER_SLICE) return i;
+        if (i.id !== a.instId || i.vgpus.length >= maxVgpusPerSlice(i.gb)) return i;
         const vg = makeSliceVgpu(seq++, totalSliceVgpus(s), i.gb);
         return rebalanceFb({ ...i, vgpus: [...i.vgpus, vg] });
       });

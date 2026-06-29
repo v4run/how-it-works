@@ -20,7 +20,7 @@ import {
   usedVgpuMem,
   TOTAL_COMPUTE,
   TOTAL_MEM_GB,
-  MAX_VGPU_PER_SLICE,
+  maxVgpusPerSlice,
 } from './model';
 import { SimSnapshot } from './useSimulation';
 import { PRESETS } from './presets';
@@ -231,7 +231,7 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
         <BudgetBar label="Framebuffer" used={usedMigMem(state)} total={TOTAL_MEM_GB} unit="GB" accent={C.mig} />
         {backed ? (
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>
-            Each slice runs an independent scheduler. Add <span style={{ color: accent }}>1–{MAX_VGPU_PER_SLICE} time-sliced vGPUs</span> per slice (NVIDIA MIG time-slicing): across slices they run in parallel &amp; isolated; within a slice they share its compute.
+            Each slice runs an independent scheduler. Add <span style={{ color: accent }}>time-sliced vGPUs</span> per slice (NVIDIA MIG time-slicing) — the count is framebuffer-derived (slice memory ÷ 10 GB, so a 1g.10gb holds 1, a 7g.80gb 8): across slices they run in parallel &amp; isolated; within a slice they share its compute.
           </div>
         ) : (
           <div style={{ fontFamily: MONO, fontSize: 12, color: C.faint, marginTop: 4, marginBottom: 4, lineHeight: 1.5 }}>
@@ -252,7 +252,7 @@ function MigBuilder({ state, dispatch, snap }: { state: LabState; dispatch: Disp
 
       <Section title={`${backed ? 'MIG slices' : 'Instances'} · ${state.instances.length}`} accent={accent}>
         {state.instances.length === 0 ? (
-          <Empty>{backed ? 'No slices yet. Add a profile above — each MIG slice can host 1–3 time-sliced vGPUs.' : 'No GPU Instances yet. Add a profile above to carve the die.'}</Empty>
+          <Empty>{backed ? 'No slices yet. Add a profile above — each MIG slice hosts time-sliced vGPUs, one per 10 GB of its framebuffer.' : 'No GPU Instances yet. Add a profile above to carve the die.'}</Empty>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {state.instances.map((inst, idx) =>
@@ -305,7 +305,8 @@ function InstanceCard({ inst, idx, dispatch, snap }: { inst: MigInstance; idx: n
 function SliceCard({ inst, idx, dispatch, snap }: { inst: MigInstance; idx: number; dispatch: Dispatch; snap: SimSnapshot }) {
   const sv = snap.slices[inst.id];
   const down = inst.faulted;
-  const canAdd = inst.vgpus.length < MAX_VGPU_PER_SLICE;
+  const maxVg = maxVgpusPerSlice(inst.gb);
+  const canAdd = inst.vgpus.length < maxVg;
   return (
     <div style={{ border: `1px solid ${down ? C.red : C.line}`, borderRadius: 10, padding: 12, background: `rgba(${hexToRgb(down ? C.red : C.mig)},0.05)` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -359,7 +360,7 @@ function SliceCard({ inst, idx, dispatch, snap }: { inst: MigInstance; idx: numb
       </div>
 
       <div style={{ marginTop: 10 }}>
-        <Button small accent={C.vgpu} disabled={!canAdd} title={canAdd ? 'Add a time-sliced vGPU to this slice' : `Max ${MAX_VGPU_PER_SLICE} vGPUs per slice`} onClick={() => dispatch({ type: 'addSliceVgpu', instId: inst.id })}>
+        <Button small accent={C.vgpu} disabled={!canAdd} title={canAdd ? 'Add a time-sliced vGPU to this slice' : `Max ${maxVg} vGPU${maxVg === 1 ? '' : 's'} on a ${inst.profileId} slice (${inst.gb} GB ÷ 10 GB)`} onClick={() => dispatch({ type: 'addSliceVgpu', instId: inst.id })}>
           + time-sliced vGPU
         </Button>
       </div>
