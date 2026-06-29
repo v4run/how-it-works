@@ -71,10 +71,12 @@ function MigViz({ state, snap }: { state: LabState; snap: SimSnapshot }) {
     const single = inst.vgpus.length === 1;
     groups.push({
       cols: inst.cols,
-      label: single ? inst.vgpus[0]?.name ?? `GI-${idx}` : `GI-${idx} · ${inst.vgpus.length}×vGPU`,
+      // Keep the label to the short slice id so it fits a 1-column slice without
+      // overrunning the neighbour; the badge (centred) shows the active vGPU.
+      label: `GI-${idx}`,
       color: inst.faulted ? C.red : stalled ? C.red : C.vgpu,
       fault: inst.faulted,
-      badge: inst.faulted ? undefined : single ? 'VF' : activeVg ? activeVg.name : `${inst.vgpus.length} vGPU`,
+      badge: inst.faulted ? undefined : activeVg ? activeVg.name : single ? inst.vgpus[0]?.name ?? 'VF' : `${inst.vgpus.length} vGPUs`,
     });
   });
 
