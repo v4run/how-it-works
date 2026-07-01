@@ -28,6 +28,14 @@
       "description": "How a virtual Layer-2 network rides across a routed fabric. Build VNI segments and hosts on a spine-leaf topology, then send a frame and watch the leaf VTEP encapsulate it, route it over the underlay and decapsulate it — with VNI isolation, BGP-EVPN vs flood-and-learn, ARP suppression and a live header-stack inspector. Includes a diagrammatic explainer film.",
       "tags": ["networking", "VXLAN", "VTEP", "VNI", "BGP EVPN", "overlay", "spine-leaf"],
       "accent": "#6f93b8"
+    },
+    {
+      "slug": "metallb",
+      "dir": "modules/metallb",
+      "title": "MetalLB — bare-metal load balancer",
+      "description": "How Kubernetes gets a LoadBalancer Service on bare metal. Define an IPAddressPool, create Services and watch the controller allocate external IPs, then switch the speaker between Layer-2 mode (one elected leader answers ARP/NDP) and BGP mode (every node advertises a /32 and the router load-balances with ECMP). Send traffic and kill nodes to compare failover. Includes a diagrammatic explainer film.",
+      "tags": ["networking", "Kubernetes", "MetalLB", "load balancer", "BGP", "ECMP", "ARP", "bare metal"],
+      "accent": "#76B900"
     }
   ]
 }
