@@ -25,6 +25,7 @@ scripts/
 | [`mig-vs-vgpu`](modules/mig-vs-vgpu) | NVIDIA GPU partitioning on the **H100 80GB** — MIG (spatial), vGPU (time-sliced) and MIG-backed vGPU. Interactive lab + film.   |
 | [`nico`](modules/nico)               | NVIDIA Infra Controller (NICo) — zero-touch bare-metal provisioning, DPU-enforced isolation, multitenant fabric. Lab + film.   |
 | [`vxlan`](modules/vxlan)             | VXLAN overlays — VTEPs, VNIs, spine-leaf fabric, BGP-EVPN vs flood-and-learn, ARP suppression, a live packet walk. Lab + film.  |
+| [`metallb`](modules/metallb)         | MetalLB on bare-metal Kubernetes — IP pools, the controller/speaker split, Layer-2 (ARP/NDP) vs BGP (ECMP), and failover. Lab + film. |
 
 ## Local development
 
