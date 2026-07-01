@@ -26,6 +26,7 @@ scripts/
 | [`nico`](modules/nico)               | NVIDIA Infra Controller (NICo) — zero-touch bare-metal provisioning, DPU-enforced isolation, multitenant fabric. Lab + film.   |
 | [`vxlan`](modules/vxlan)             | VXLAN overlays — VTEPs, VNIs, spine-leaf fabric, BGP-EVPN vs flood-and-learn, ARP suppression, a live packet walk. Lab + film.  |
 | [`metallb`](modules/metallb)         | MetalLB on bare-metal Kubernetes — IP pools, the controller/speaker split, Layer-2 (ARP/NDP) vs BGP (ECMP), and failover. Lab + film. |
+| [`vlan`](modules/vlan)               | VLANs (802.1Q) — access vs trunk ports, the tag lifecycle, native VLAN, broadcast isolation, and inter-VLAN routing, with a live frame walk. Lab + film. |
 
 ## Local development
 
