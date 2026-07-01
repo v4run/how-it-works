@@ -1,0 +1,24 @@
+{
+  "name": "vlan-lab",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Interactive learning environment for VLANs — broadcast-domain segmentation, access vs trunk ports, 802.1Q tagging, the native VLAN, broadcast isolation, and inter-VLAN routing (router-on-a-stick and L3 SVIs)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

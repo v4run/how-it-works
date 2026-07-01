@@ -36,6 +36,14 @@
       "description": "How Kubernetes gets a LoadBalancer Service on bare metal. Define an IPAddressPool, create Services and watch the controller allocate external IPs, then switch the speaker between Layer-2 mode (one elected leader answers ARP/NDP) and BGP mode (every node advertises a /32 and the router load-balances with ECMP). Send traffic and kill nodes to compare failover. Includes a diagrammatic explainer film.",
       "tags": ["networking", "Kubernetes", "MetalLB", "load balancer", "BGP", "ECMP", "ARP", "bare metal"],
       "accent": "#76B900"
+    },
+    {
+      "slug": "vlan",
+      "dir": "modules/vlan",
+      "title": "VLANs — from the wire up",
+      "description": "How one switch becomes many isolated networks. Build access ports and a trunk across two switches, watch the 802.1Q tag get pushed on the trunk and stripped at the access port, keep broadcasts inside their VLAN, handle the native VLAN (and its mismatch), and route between VLANs with router-on-a-stick or an L3 switch. Trace any frame hop by hop with its tagged/untagged state, and inject the classic misconfigurations. Includes a diagrammatic explainer film.",
+      "tags": ["networking", "VLAN", "802.1Q", "trunk", "access port", "native VLAN", "inter-VLAN routing", "switching"],
+      "accent": "#76b900"
     }
   ]
 }
